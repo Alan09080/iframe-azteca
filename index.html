@@ -1,564 +1,803 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Iframe Azteca™</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            min-height: 100vh;
-            overflow: hidden;
-            font-family: Arial, Helvetica, sans-serif;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            background:
-                radial-gradient(circle at 20% 20%, #ff00aa55, transparent 30%),
-                radial-gradient(circle at 80% 30%, #00e5ff55, transparent 35%),
-                radial-gradient(circle at 50% 90%, #7b2cff55, transparent 35%),
-                #080811;
-
-            color: white;
-        }
-
-        .background-grid {
-            position: fixed;
-            inset: 0;
-
-            background-image:
-                linear-gradient(rgba(255, 255, 255, .04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px);
-
-            background-size: 40px 40px;
-
-            animation: moveGrid 12s linear infinite;
-
-            pointer-events: none;
-        }
-
-        @keyframes moveGrid {
-            from {
-                transform: translate(0, 0);
-            }
-
-            to {
-                transform: translate(40px, 40px);
-            }
-        }
-
-        .blob {
-            position: fixed;
-
-            width: 400px;
-            height: 400px;
-
-            border-radius: 50%;
-
-            filter: blur(100px);
-
-            opacity: .45;
-
-            animation: blobMove 10s ease-in-out infinite alternate;
-
-            pointer-events: none;
-        }
-
-        .blob.one {
-            background: #ff0099;
-            left: -100px;
-            top: -100px;
-        }
-
-        .blob.two {
-            background: #00c8ff;
-            right: -120px;
-            bottom: -100px;
-
-            animation-delay: -5s;
-        }
-
-        @keyframes blobMove {
-            from {
-                transform: translate(0, 0) scale(1);
-            }
-
-            to {
-                transform: translate(100px, 80px) scale(1.2);
-            }
-        }
-
-        .card {
-            width: min(900px, 92vw);
-
-            padding: 50px 35px;
-
-            border: 1px solid rgba(255, 255, 255, .13);
-            border-radius: 30px;
-
-            background:
-                linear-gradient(135deg,
-                    rgba(255, 255, 255, .08),
-                    rgba(255, 255, 255, .025));
-
-            backdrop-filter: blur(20px);
-
-            text-align: center;
-
-            position: relative;
-            z-index: 2;
-
-            box-shadow:
-                0 40px 120px rgba(0, 0, 0, .55),
-                inset 0 1px rgba(255, 255, 255, .1);
-
-            animation: cardFloat 4s ease-in-out infinite;
-        }
-
-        @keyframes cardFloat {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-12px);
-            }
-        }
-
-        .status {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-
-            padding: 8px 14px;
-
-            border-radius: 999px;
-
-            background: rgba(75, 255, 140, .09);
-
-            border: 1px solid rgba(75, 255, 140, .2);
-
-            font-size: 13px;
-
-            margin-bottom: 28px;
-        }
-
-        .dot {
-            width: 9px;
-            height: 9px;
-
-            border-radius: 50%;
-
-            background: #4bff8c;
-
-            box-shadow: 0 0 20px #4bff8c;
-
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            50% {
-                opacity: .25;
-            }
-        }
-
-        h1 {
-            font-size: clamp(45px, 8vw, 100px);
-            line-height: .9;
-
-            letter-spacing: -5px;
-
-            margin-bottom: 25px;
-        }
-
-        .gradient {
-            background:
-                linear-gradient(90deg,
-                    #ff54bd,
-                    #8a5cff,
-                    #38ddff,
-                    #ff54bd);
-
-            background-size: 250%;
-
-            background-clip: text;
-            -webkit-background-clip: text;
-
-            color: transparent;
-
-            animation: gradientMove 4s linear infinite;
-        }
-
-        @keyframes gradientMove {
-            to {
-                background-position: 250%;
-            }
-        }
-
-        .subtitle {
-            color: #aaa;
-
-            font-size: 18px;
-            line-height: 1.6;
-
-            max-width: 620px;
-
-            margin: 0 auto 35px;
-        }
-
-        .big-message {
-            font-size: clamp(22px, 4vw, 38px);
-
-            font-weight: 900;
-
-            margin-bottom: 30px;
-
-            min-height: 50px;
-        }
-
-        .button {
-            border: 0;
-
-            padding: 16px 25px;
-
-            border-radius: 15px;
-
-            background:
-                linear-gradient(135deg,
-                    #7b2cff,
-                    #008cff);
-
-            color: white;
-
-            font-weight: 800;
-
-            cursor: pointer;
-
-            font-size: 15px;
-
-            box-shadow:
-                0 15px 45px rgba(100, 50, 255, .4);
-
-            transition:
-                transform .2s ease,
-                box-shadow .2s ease;
-        }
-
-        .button:hover {
-            transform:
-                translateY(-4px) scale(1.03);
-
-            box-shadow:
-                0 25px 70px rgba(100, 50, 255, .6);
-        }
-
-        .counter {
-            margin-top: 25px;
-
-            font-size: 13px;
-
-            color: #777;
-        }
-
-        .emoji {
-            position: fixed;
-
-            font-size: 45px;
-
-            pointer-events: none;
-
-            animation: fly 2.5s linear forwards;
-
-            z-index: 10;
-        }
-
-        @keyframes fly {
-            0% {
-                opacity: 0;
-                transform:
-                    translateY(40px) rotate(0deg) scale(.5);
-            }
-
-            20% {
-                opacity: 1;
-            }
-
-            100% {
-                opacity: 0;
-
-                transform:
-                    translateY(-500px) rotate(720deg) scale(1.5);
-            }
-        }
-
-        .warning {
-            margin-top: 30px;
-
-            padding-top: 20px;
-
-            border-top: 1px solid rgba(255, 255, 255, .08);
-
-            color: #666;
-
-            font-size: 12px;
-        }
-
-        .cursor {
-            position: fixed;
-
-            width: 300px;
-            height: 300px;
-
-            border-radius: 50%;
-
-            pointer-events: none;
-
-            background:
-                radial-gradient(circle,
-                    rgba(125, 60, 255, .18),
-                    transparent 70%);
-
-            transform: translate(-50%, -50%);
-
-            z-index: 1;
-        }
-
-        @media (max-width: 600px) {
-            .card {
-                padding: 35px 22px;
-            }
-
-            h1 {
-                letter-spacing: -3px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iframe Azteca Embed Hub</title>
+  <style>
+    :root {
+      --bg: #eef1f5;
+      --panel: #ffffff;
+      --panel-soft: #f8fafc;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #d9dee8;
+      --line-strong: #c8cfdb;
+      --brand: #c40030;
+      --brand-dark: #8f0025;
+      --ok: #087f5b;
+      --warn: #b7791f;
+      --code: #111827;
+      --shadow: 0 18px 50px rgba(23, 32, 51, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 252px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      background: #151b29;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      padding: 24px 18px;
+    }
+
+    .brand {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 22px;
+    }
+
+    .brand-mark {
+      align-items: center;
+      background: #ffffff;
+      border-radius: 6px;
+      color: var(--brand);
+      display: inline-flex;
+      font-size: 18px;
+      font-weight: 900;
+      height: 38px;
+      justify-content: center;
+      margin-bottom: 14px;
+      width: 38px;
+    }
+
+    .brand h1 {
+      font-size: 18px;
+      line-height: 1.2;
+      margin: 0 0 6px;
+    }
+
+    .brand p,
+    .nav-label,
+    .sidebar-note {
+      color: #aab2c0;
+      font-size: 13px;
+      line-height: 1.45;
+      margin: 0;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-label {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+    }
+
+    .nav a {
+      align-items: center;
+      border-radius: 6px;
+      color: #d7dce5;
+      display: flex;
+      font-size: 14px;
+      font-weight: 700;
+      gap: 10px;
+      min-height: 38px;
+      padding: 0 10px;
+    }
+
+    .nav a.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .nav-dot {
+      background: #7f8aa0;
+      border-radius: 3px;
+      height: 10px;
+      width: 10px;
+    }
+
+    .nav a.active .nav-dot {
+      background: var(--brand);
+    }
+
+    .sidebar-note {
+      margin-top: auto;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.82);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 18px;
+      justify-content: space-between;
+      min-height: 72px;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar-title {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin: 0 0 3px;
+      text-transform: uppercase;
+    }
+
+    .topbar h2 {
+      font-size: 20px;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .domain-pill {
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--muted);
+      display: inline-flex;
+      font-size: 13px;
+      font-weight: 700;
+      min-height: 38px;
+      padding: 0 12px;
+      white-space: nowrap;
+    }
+
+    .content {
+      display: grid;
+      gap: 18px;
+      padding: 24px 28px 34px;
+    }
+
+    .stats {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      min-height: 104px;
+      padding: 16px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 850;
+      line-height: 1;
+      margin: 0 0 8px;
+    }
+
+    .stat-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .section-header {
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 16px;
+      justify-content: space-between;
+      padding: 16px 18px;
+    }
+
+    .section-header h3 {
+      font-size: 16px;
+      line-height: 1.2;
+      margin: 0;
+    }
+
+    .section-header p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      margin: 4px 0 0;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      min-width: 920px;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 14px 18px;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .asset-name {
+      align-items: center;
+      display: flex;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .asset-icon {
+      align-items: center;
+      background: #f4d15c;
+      border: 1px solid #d9b83e;
+      border-radius: 6px;
+      color: #58497d;
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 900;
+      height: 36px;
+      justify-content: center;
+      width: 36px;
+    }
+
+    .asset-icon.dark {
+      background: #1a1a1a;
+      border-color: #303846;
+      color: #f5a623;
+    }
+
+    .asset-name strong {
+      display: block;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .asset-name span,
+    .cell-muted {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 3px;
+    }
+
+    .status-chip {
+      align-items: center;
+      background: #e9f8f2;
+      border: 1px solid #c6ecdc;
+      border-radius: 999px;
+      color: var(--ok);
+      display: inline-flex;
+      font-size: 12px;
+      font-weight: 800;
+      gap: 7px;
+      min-height: 28px;
+      padding: 0 10px;
+      white-space: nowrap;
+    }
+
+    .status-chip::before {
+      background: currentColor;
+      border-radius: 50%;
+      content: "";
+      height: 7px;
+      width: 7px;
+    }
+
+    .url-cell {
+      color: #334155;
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 12px;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .button {
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 13px;
+      font-weight: 800;
+      gap: 8px;
+      justify-content: center;
+      min-height: 36px;
+      padding: 0 12px;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .button.primary {
+      background: var(--brand);
+      color: #ffffff;
+    }
+
+    .button.primary:hover {
+      background: var(--brand-dark);
+    }
+
+    .button.secondary {
+      background: #ffffff;
+      border-color: var(--line-strong);
+      color: var(--ink);
+    }
+
+    .button.secondary:hover {
+      background: #f3f5f8;
+    }
+
+    .button-icon {
+      border: 2px solid currentColor;
+      border-radius: 3px;
+      height: 12px;
+      position: relative;
+      width: 12px;
+    }
+
+    .button-icon.copy::after {
+      border: 2px solid currentColor;
+      border-radius: 3px;
+      content: "";
+      height: 10px;
+      left: 3px;
+      position: absolute;
+      top: -6px;
+      width: 10px;
+    }
+
+    .button-icon.open {
+      border-left: 0;
+      border-bottom: 0;
+      border-radius: 0;
+      height: 10px;
+      transform: rotate(45deg);
+      width: 10px;
+    }
+
+    .button-icon.open::after {
+      background: currentColor;
+      content: "";
+      height: 2px;
+      position: absolute;
+      right: -1px;
+      top: 4px;
+      width: 15px;
+    }
+
+    .copy-feedback {
+      color: var(--ok);
+      font-size: 12px;
+      font-weight: 800;
+      min-height: 16px;
+      text-align: right;
+    }
+
+    .preview-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 18px;
+    }
+
+    .preview {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .preview-bar {
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+      min-height: 44px;
+      padding: 0 12px;
+    }
+
+    .preview-title {
+      font-size: 13px;
+      font-weight: 850;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preview-frame {
+      background: #ffffff;
+      height: 310px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .preview-frame iframe {
+      border: 0;
+      height: 620px;
+      left: 0;
+      position: absolute;
+      top: 0;
+      transform: scale(0.5);
+      transform-origin: 0 0;
+      width: 200%;
+    }
+
+    .code-drawer {
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .code-row {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    textarea {
+      background: var(--code);
+      border: 1px solid #273244;
+      border-radius: 6px;
+      color: #f8fafc;
+      display: block;
+      font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+      min-height: 84px;
+      padding: 12px;
+      resize: vertical;
+      width: 100%;
+    }
+
+    @media (max-width: 1040px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+        padding: 16px;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .domain-pill {
+        width: 100%;
+      }
+
+      .code-row {
+        grid-template-columns: 1fr;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      .button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Navegación del hub">
+      <div class="brand">
+        <div class="brand-mark">IA</div>
+        <h1>Iframe Azteca</h1>
+        <p>Central de páginas publicadas para embeds externos.</p>
+      </div>
 
-    <div class="background-grid"></div>
+      <nav class="nav">
+        <p class="nav-label">Workspace</p>
+        <a class="active" href="#assets"><span class="nav-dot"></span>Activos</a>
+        <a href="#previews"><span class="nav-dot"></span>Previews</a>
+        <a href="#snippets"><span class="nav-dot"></span>Códigos</a>
+      </nav>
 
-    <div class="blob one"></div>
-    <div class="blob two"></div>
+      <p class="sidebar-note">GitHub Pages entrega cada archivo HTML como una página independiente lista para iframe.</p>
+    </aside>
 
-    <div class="cursor" id="cursor"></div>
-
-    <main class="card">
-
-        <div class="status">
-            <div class="dot"></div>
-            IFRAME DETECTADO CON ÉXITO
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-title">
+          <p class="eyebrow">Embed CRM</p>
+          <h2>Centro de control de páginas embebibles</h2>
         </div>
+        <a class="domain-pill" href="https://iframe.alanortiz.me">iframe.alanortiz.me</a>
+      </header>
 
-        <h1>
-            ESTÁS VIENDO
-            <br>
-            <span class="gradient">
-                UN IFRAME.
-            </span>
-        </h1>
+      <div class="content">
+        <section class="stats" aria-label="Resumen">
+          <article class="stat">
+            <p class="stat-label">Activos</p>
+            <p class="stat-value">2</p>
+            <p class="stat-meta">HTML publicados</p>
+          </article>
+          <article class="stat">
+            <p class="stat-label">Estado</p>
+            <p class="stat-value">Live</p>
+            <p class="stat-meta">GitHub Pages</p>
+          </article>
+          <article class="stat">
+            <p class="stat-label">Dominio</p>
+            <p class="stat-value">CNAME</p>
+            <p class="stat-meta">iframe.alanortiz.me</p>
+          </article>
+          <article class="stat">
+            <p class="stat-label">Formato</p>
+            <p class="stat-value">iframe</p>
+            <p class="stat-meta">Responsive width</p>
+          </article>
+        </section>
 
-        <p class="subtitle">
-            Si puedes leer esto, felicidades:
-            acabas de incrustar exitosamente una página
-            dentro de otra página.
-            La ingeniería moderna ha alcanzado su punto máximo.
-        </p>
+        <section class="section" id="assets">
+          <div class="section-header">
+            <div>
+              <h3>Inventario de embeds</h3>
+              <p>URLs públicas y acciones rápidas para cada página alojada.</p>
+            </div>
+            <span class="status-chip">Operativo</span>
+          </div>
 
-        <div class="big-message" id="message">
-            🗿 Todo funciona sorprendentemente bien.
-        </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Página</th>
+                  <th>URL pública</th>
+                  <th>Alto sugerido</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="asset-name">
+                      <span class="asset-icon">GDL</span>
+                      <span>
+                        <strong>Mapa GDL</strong>
+                        <span>mapa-gdl.html</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="url-cell">https://iframe.alanortiz.me/mapa-gdl.html</td>
+                  <td>
+                    <strong>900 px</strong>
+                    <span class="cell-muted">Contenido + mapa externo</span>
+                  </td>
+                  <td><span class="status-chip">Publicado</span></td>
+                  <td>
+                    <div class="actions">
+                      <button class="button secondary" type="button" data-copy-target="gdl-code"><span class="button-icon copy"></span>Copiar</button>
+                      <a class="button primary" href="mapa-gdl.html"><span class="button-icon open"></span>Abrir</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="asset-name">
+                      <span class="asset-icon dark">MTY</span>
+                      <span>
+                        <strong>Mundial MTY</strong>
+                        <span>mundial-mty.html</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="url-cell">https://iframe.alanortiz.me/mundial-mty.html</td>
+                  <td>
+                    <strong>720 px</strong>
+                    <span class="cell-muted">Mapa interactivo fullscreen</span>
+                  </td>
+                  <td><span class="status-chip">Publicado</span></td>
+                  <td>
+                    <div class="actions">
+                      <button class="button secondary" type="button" data-copy-target="mty-code"><span class="button-icon copy"></span>Copiar</button>
+                      <a class="button primary" href="mundial-mty.html"><span class="button-icon open"></span>Abrir</a>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-        <button class="button" id="button">
-            NO PRESIONAR
-        </button>
+        <section class="section" id="previews">
+          <div class="section-header">
+            <div>
+              <h3>Previews</h3>
+              <p>Vista interna reducida de las páginas que se van a embeber.</p>
+            </div>
+            <span class="status-chip">2 disponibles</span>
+          </div>
 
-        <div class="counter">
-            Veces que ignoraste una advertencia:
-            <strong id="counter">0</strong>
-        </div>
+          <div class="preview-grid">
+            <article class="preview">
+              <div class="preview-bar">
+                <span class="preview-title">Mapa GDL</span>
+                <a href="mapa-gdl.html" class="button secondary">Abrir página</a>
+              </div>
+              <div class="preview-frame">
+                <iframe src="mapa-gdl.html" loading="lazy" title="Preview Mapa GDL"></iframe>
+              </div>
+            </article>
 
-        <div class="warning">
-            Este iframe contiene cantidades peligrosas de HTML.
-            Use bajo su propio riesgo.
-        </div>
+            <article class="preview">
+              <div class="preview-bar">
+                <span class="preview-title">Mundial MTY</span>
+                <a href="mundial-mty.html" class="button secondary">Abrir página</a>
+              </div>
+              <div class="preview-frame">
+                <iframe src="mundial-mty.html" loading="lazy" title="Preview Mundial MTY"></iframe>
+              </div>
+            </article>
+          </div>
+        </section>
 
+        <section class="section" id="snippets">
+          <div class="section-header">
+            <div>
+              <h3>Códigos iframe</h3>
+              <p>Snippets listos para pegar en el sitio donde se incrustan las páginas.</p>
+            </div>
+            <div class="copy-feedback" aria-live="polite" id="copy-status"></div>
+          </div>
+
+          <div class="code-drawer">
+            <div class="code-row">
+              <textarea id="gdl-code" readonly aria-label="Iframe Mapa GDL">&lt;iframe src="https://iframe.alanortiz.me/mapa-gdl.html" width="100%" height="900" style="border:0;" loading="lazy" title="Mapa GDL"&gt;&lt;/iframe&gt;</textarea>
+              <button class="button secondary" type="button" data-copy-target="gdl-code"><span class="button-icon copy"></span>Copiar GDL</button>
+            </div>
+
+            <div class="code-row">
+              <textarea id="mty-code" readonly aria-label="Iframe Mundial MTY">&lt;iframe src="https://iframe.alanortiz.me/mundial-mty.html" width="100%" height="720" style="border:0;" loading="lazy" title="Mundial MTY"&gt;&lt;/iframe&gt;</textarea>
+              <button class="button secondary" type="button" data-copy-target="mty-code"><span class="button-icon copy"></span>Copiar MTY</button>
+            </div>
+          </div>
+        </section>
+      </div>
     </main>
+  </div>
 
-    <script>
-        const messages = [
-            "🗿 Todo funciona sorprendentemente bien.",
-            "🚨 Te dije que no presionaras.",
-            "🤨 ¿Otra vez?",
-            "💀 Hermano ya déjalo.",
-            "🧑‍💻 QA acaba de abrir un ticket.",
-            "🔥 Producción está en llamas.",
-            "🤡 'En mi máquina sí funciona'.",
-            "📉 Lighthouse Score: no preguntes.",
-            "👀 Arc XP está observando.",
-            "🧠 Reiniciar producción debería arreglarlo.",
-            "⚠️ console.log('TODO BIEN');",
-            "🥲 El becario hizo deploy.",
-            "🚀 Deploy directo a main porque somos valientes.",
-            "💾 Backup: ninguno.",
-            "☕ El verdadero backend es café.",
-            "🫡 Gracias por probar el iframe."
-        ];
+  <script>
+    const copyStatus = document.getElementById("copy-status");
 
-        const emojis = [
-            "💀",
-            "🔥",
-            "🗿",
-            "🤡",
-            "🚨",
-            "🚀",
-            "👀",
-            "🥲",
-            "⚡",
-            "💻"
-        ];
+    document.querySelectorAll("[data-copy-target]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const textarea = document.getElementById(button.dataset.copyTarget);
 
-        let count = 0;
-
-        const button =
-            document.getElementById("button");
-
-        const counter =
-            document.getElementById("counter");
-
-        const message =
-            document.getElementById("message");
-
-        const cursor =
-            document.getElementById("cursor");
-
-
-        button.addEventListener("click", () => {
-
-            count++;
-
-            counter.textContent = count;
-
-            message.textContent =
-                messages[count % messages.length];
-
-            createEmojiExplosion();
-
-            button.textContent =
-                count < 3
-                    ? "NO PRESIONAR"
-                    : count < 7
-                        ? "YA WEY"
-                        : count < 12
-                            ? "DETENTE"
-                            : "💀";
-
-            if (count === 10) {
-
-                document.title =
-                    "💀 Producción cayó";
-
-            }
-
-        });
-
-
-        function createEmojiExplosion() {
-
-            for (let i = 0; i < 12; i++) {
-
-                const emoji =
-                    document.createElement("div");
-
-                emoji.className =
-                    "emoji";
-
-                emoji.textContent =
-                    emojis[
-                    Math.floor(
-                        Math.random() *
-                        emojis.length
-                    )
-                    ];
-
-                emoji.style.left =
-                    Math.random() * 100 + "vw";
-
-                emoji.style.bottom =
-                    "-50px";
-
-                emoji.style.animationDuration =
-                    1.5 + Math.random() * 2 + "s";
-
-                document.body.appendChild(
-                    emoji
-                );
-
-                setTimeout(
-                    () => emoji.remove(),
-                    4000
-                );
-
-            }
-
+        try {
+          await navigator.clipboard.writeText(textarea.value);
+        } catch {
+          textarea.select();
+          document.execCommand("copy");
+          textarea.blur();
         }
 
-
-        window.addEventListener(
-            "mousemove",
-            event => {
-
-                cursor.style.left =
-                    event.clientX + "px";
-
-                cursor.style.top =
-                    event.clientY + "px";
-
-            }
-        );
-
-
-        /*
-          Si esta página está dentro de un iframe,
-          notificamos al parent.
-        */
-
-        if (window.self !== window.top) {
-
-            console.log(
-                "✅ Esta página está corriendo dentro de un iframe."
-            );
-
-            window.parent.postMessage(
-                {
-                    type: "IFRAME_AZTECA_READY",
-                    message: "El iframe está vivo 🗿"
-                },
-                "*"
-            );
-
-        } else {
-
-            console.log(
-                "ℹ️ Esta página fue abierta directamente."
-            );
-
-        }
-    </script>
-
+        copyStatus.textContent = "Iframe copiado";
+        window.setTimeout(() => {
+          copyStatus.textContent = "";
+        }, 1800);
+      });
+    });
+  </script>
 </body>
-
 </html>

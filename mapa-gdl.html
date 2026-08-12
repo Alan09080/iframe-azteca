@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa GDL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      padding: 0;
+      width: 100%;
+    }
+
+    body {
+      background: #ffffff;
+      color: #222222;
+      font-family: Lato, Arial, Helvetica, sans-serif;
+      overflow-x: hidden;
+      padding: 24px 0 40px;
+    }
+  </style>
+</head>
+<body>
+<style>
+  #map {
+    height: 102px;
+  }
+  .sponsors {
+      display: block;
+      margin: 0 auto 40px auto;
+      max-width: 1320px;
+      width: 85%;
+  }
+  .mapinfo {
+    background-color: #f4d15c;
+    border-radius: 20px;
+    font-size: 14px;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 1320px;
+    width: 90%;
+  }
+  .mapinfo .mapinfo {
+    width: 100%;
+  }
+  .mapinfo_icon {
+    display: block;
+    height: 120px;
+    max-width: 100%;
+    width: auto;
+  }
+  .mapinfo_column {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 20px;
+  }
+  .mapinfo_column p {
+    margin: 0;
+  }
+  .mapinfo_column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .mapinfo_column li {
+    list-style-position: outside;
+    list-style-type: circle;
+    margin-left: 15px;
+  }
+  .mapinfo_column-title,
+  .mapinfo_column-subtitle  {
+    font-family: Lato, sans-serif;
+    color: #58497d;
+  }
+  .mapinfo_column-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 15px;
+    margin-bottom: 0;
+  }
+  .mapinfo_column-subtitle {
+    margin-top: 15px;
+    margin-bottom: 0;
+  }
+  .viewmap {
+    align-items: center;
+    background: #c03;
+    border-radius: 4px;
+    box-sizing: border-box;
+    color: #fff;
+    display: inline-block;
+    font-family: Lato, sans-serif;
+    font-weight: 700;
+    justify-content: center;
+    text-decoration: none;
+    margin: 25px 0;
+    padding: 10px 16px;
+  }
+  .viewmap:hover {
+    background: #75001d;
+    color: #fff;
+    text-decoration: none;
+  }
+  @media all and (min-width:768px) {
+    #map {
+      height: 144px;
+    }
+    .mapinfo {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: stretch;
+      align-content: stretch;
+    }
+    .mapinfo_column.width-33 {
+      width: 33%;
+    }
+    .mapinfo_column.width-50 {
+      width: 50%;
+    }
+    .mapinfo_column.width-67 {
+      width: 67%;
+    }
+  }
+  @media all and (max-width:767px) {
+    #mapcontainer {
+        height: 120vw !important;
+    }
+  }
+</style>
+<div style="width:90%;max-width:1320px;margin:0 auto;"><a href="#map" class="viewmap">VER MAPA</a></div>
+<div class="mapinfo">
+  <div class="mapinfo_column width-33">
+    <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/7CLNFDPQPBBBBLOXEXAIDK7QU4.png" width="500" height="268" />
+    <p class="mapinfo_column-title">FRUTAS Y VERDURAS DE TEMPORADA</p>
+    <p class="mapinfo_column-subtitle">Enero - Febrero</p>
+    <p>Fresa · Guayaba · Naranja · Limón · Tejocote · Chícharo · Frijol</p>
+    <p class="mapinfo_column-subtitle">Marzo - Abril</p>
+    <p>Mango · Mamey · Tamarindo · Jícama · Garbanzo fresco · Calabacita</p>
+    <p class="mapinfo_column-subtitle">Mayo - Junio</p>
+    <p>Ciruela · Chabacano · Durazno · Elote · Flor de calabaza · Chile de árbol · Pitaya · Guamúchil</p>
+    <p class="mapinfo_column-subtitle">Julio - Agosto</p>
+    <p>Higo · Nanche · Tuna · Ejote · Tomatillo</p>
+    <p class="mapinfo_column-subtitle">Septiembre - Octubre</p>
+    <p>Granada · Manzana · Aguacate</p>
+    <p class="mapinfo_column-subtitle">Noviembre - Diciembre</p>
+    <p>Guayaba · Tejocote · Naranja · Limón · Frijol</p>
+  </div>
+  <div class="mapinfo_column width-33">
+    <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/FXZRA7IP7NAZHDMHHYD4SZOZO4.png" width="500" height="303" />
+    <p class="mapinfo_column-title">BEBIDAS Y COMIDAS (SNACKS)</p>
+    <p class="mapinfo_column-subtitle">Comida (a veces callejera)</p>
+    <ul>
+      <li>Jericalla</li>
+      <li>Torta ahogada (en bolsa)</li>
+      <li>Birria</li>
+      <li>Pozole rojo</li>
+      <li>Carne de res en su jugo</li>
+      <li>Tostadas raspadas</li>
+    </ul>
+  </div>
+  <div class="mapinfo_column width-33">
+      <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/YJQCVCXXJNC5HJNCLHYLPTIWPE.png" width="500" height="645" />
+      <p class="mapinfo_column-title">&nbsp;</p>
+      <p class="mapinfo_column-subtitle">Bebidas:</p>
+      <ul>
+        <li>Tejuino (maíz fermentado con limón y nieve)</li>
+        <li>Cantaritos (Coctel de tequila con jugo de naranja, toronja, limón, y refresco de toronja. Se sirve en jarritos de barro)</li>
+        <li>Rusa (refresco de toronja, limón, sal y chile)</li>
+        <li>Ponche de granada</li>
+        <li>Vampiritos: mezcla icónica de tequila, sangrita, refresco de toronja, jugo de naranja y limón, servidos en bolsa</li>
+      </ul>
+  </div>
+  <div class="mapinfo_column width-33">
+    <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/6LBIFWN3ONFLFJWO3BXQ4DBVHQ.png" width="500" height="370" />
+    <p class="mapinfo_column-title">MODISMOS</p>
+    <ul>
+      <li><b>¡Ájalas!:</b> expresión de sorpresa y admiración tapatía</li>
+      <li><b>Lonche:</b> birote relleno de distintos guisos para degustar en cualquier lugar</li>
+      <li><b>Vuelto:</b> el cambio o la cantidad sobrante al pagar con efectivo, usualmente en monedas.</li>
+      <li><b>Gusguear:</b> comer entre comidas, generalmente antojitos</li>
+      <li><b>Charpear:</b> salpicar. Si brincas sobre un charco y salpicas agua, estás charpeando.</li>
+      <li><b>Bien cura:</b> adjetivo para algo que es chistoso, divertido o gracioso</li>
+      <li><b>Mocharse:</b> se refiere a compartir algo, como la comida o las ganancias de algún trabajo</li>
+    </ul>
+  </div>
+  <div class="mapinfo_column width-67">
+    <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/TDVEIE6ZBJGYRI35DKZAPF57EI.png" width="500" height="256" />
+    <p class="mapinfo_column-title">¿QUÉ COMPRAR?</p>
+    <div class="mapinfo">
+      <div class="mapinfo_column width-50">
+        <p class="mapinfo_column-subtitle">Artesanías</p>
+        <ul>
+          <li>Cerámica y alfarería</li>
+          <li>Cantería y tallado de madera</li>
+          <li>Hilados</li>
+          <li>Obsidiana</li>
+          <li>Vidrio soplado</li>
+          <li>Talabartería</li>
+        </ul>
+      </div>
+      <div class="mapinfo_column width-50">
+        <p class="mapinfo_column-subtitle">Comida</p>
+        <ul>
+          <li>Cajeta de Sayula</li>
+          <li>Tequila</li>
+          <li>Raicilla</li>
+          <li>Dulces de arrayán</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="map"></div>
+<iframe id="mapcontainer" style="display:block;width:90vw;height:90vw;margin:40px auto;max-width:1320px;max-height:1320px;" src="https://www.revistacentral.com.mx/gdl.html" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+<img class="sponsors" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/WOF7KJNKTNHGPNLMFSLZIOVGUA.png" />
+</body>
+</html>

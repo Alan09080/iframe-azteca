@@ -1,0 +1,2157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mundial MTY</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    html,
+    body {
+      font-family: 'Manrope', sans-serif;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+    #map {
+      background-color: #aeccd6;
+      height: calc(100vh - 56px); /* Restamos la altura del banner */
+      left: 0;
+      position: fixed !important;
+      top: 56px;
+      width: 100vw;
+    }
+    /* --- ESTILOS DEL BANNER DE FILTROS --- */
+    #filter-banner {
+      align-items: center;
+      background: #1a1a1a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      display: flex;
+      gap: 8px;
+      height: 56px;
+      left: 0;
+      overflow-x: auto;
+      padding: 0 16px;
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 1000;
+    }
+    #filter-banner::-webkit-scrollbar {
+      height: 4px;
+    }
+    #filter-banner::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 2px;
+    }
+    .filter-btn {
+        background: #2a2a2a;
+        border-radius: 20px;
+        border: 1px solid #444;
+        color: #ccc;
+        cursor: pointer;
+        flex-shrink: 0;
+        font-family: 'Manrope', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 14px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .filter-btn:hover {
+      background: #333;
+      border-color: #666;
+      color: #fff;
+    }
+    .filter-btn.active {
+      background: #f5a623;
+      border-color: #f5a623;
+      color: #1a1a1a;
+    }
+    /* --- ESTILOS DEL POPUP PERSONALIZADO --- */
+    .leaflet-popup-content-wrapper {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      color: #000000;
+      overflow: hidden;
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      font-family: 'Manrope', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px 18px;
+    }
+    .leaflet-popup-tip {
+      background: #ffffff;
+    }
+    .leaflet-popup-close-button {
+      color: #999 !important;
+      font-size: 18px !important;
+      right: 10px !important;
+      top: 8px !important;
+    }
+    .popup-title {
+      color: #75001d;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      padding-right: 16px;
+    }
+    .popup-description {
+      color: #000000;
+      font-size: 12.5px;
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+    a.popup-maps-link {
+      color: #75001d;
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: left;
+      text-decoration: none;
+      transition: color 0.2s linear 0s;
+    }
+    .popup-maps-link:hover {
+      color: rgba(117, 0, 29, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <div id="filter-banner">
+    <button class="filter-btn active" data-type="all">Todos</button>
+    <button class="filter-btn" data-type="comida">🍽️ Comida</button>
+    <button class="filter-btn" data-type="cultura">🏛️ Cultura</button>
+    <button class="filter-btn" data-type="compras">🛍️ Compras</button>
+    <button class="filter-btn" data-type="entretenimiento">🎶 Entretenimiento</button>
+    <button class="filter-btn" data-type="bancos">🏦 Banco Azteca</button>
+    <button class="filter-btn" data-type="wifi">📶 Wifi TotalPlay</button>
+  </div>
+
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script>
+    const mapSource = 'https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/4P2KVXQCTJA7TGIOGGYPSYPIJI.jpg';
+    var map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -0.25,
+        maxZoom: 2,
+        zoomSnap: 0.25,
+        zoomDelta: 0.25
+    });
+
+    var altoImagen = 1293;
+    var anchoImagen = 1320;
+
+    var bounds = [[0, 0], [altoImagen, anchoImagen]];
+    L.imageOverlay(mapSource, bounds).addTo(map);
+
+    map.fitBounds(bounds);
+    map.setMaxBounds(bounds);
+
+    var datosLugares = [
+      {
+        "id": 1,
+        "titulo": "Tacos Primo",
+        "texto": "Tacos Primo. Tradición de más de 40 años sirviendo tacos de bistec donde las salsas son un auténtico must.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Primo+Martín+de+Zavala+107+Sur+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Martín de Zavala 107 Sur, Centro, Monterrey"
+      },
+      {
+        "id": 2,
+        "titulo": "Taquería La Mexicana",
+        "texto": "Taquería La Mexicana. Desde 1949, especialistas en tacos de canasta de carnitas, morcón y picadillo; también cuenta con carnicería, artesanías y dulcería.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Taquería+La+Mexicana+Vicente+Guerrero+244-A+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Vicente Guerrero 244-A Nte, Centro, Monterrey"
+      },
+      {
+        "id": 3,
+        "titulo": "Tacos Milo",
+        "texto": "Tacos Milo. Más de 50 años de tradición sirviendo tacos de barbacoa de cabeza de res.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Milo+Carretera+Nacional+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Carretera Nacional s/n, La Estanzuela, Monterrey"
+      },
+      {
+        "id": 4,
+        "titulo": "Tacos Popo’s",
+        "texto": "Tacos Popo’s. Abiertos desde 1981, ofrecen tacos mañaneros de guisado y por la noche opciones de trompo y bistec.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Popo's+Fray+Bartolomé+de+las+Casas+727+San+Nicolás+de+los+Garza",
+        "etiqueta": "comida",
+        "direccion": "Fray Bartolomé de las Casas 727, Col. El Roble, San Nicolás de los Garza"
+      },
+      {
+        "id": 5,
+        "titulo": "Taquería Juárez",
+        "texto": "Taquería Juárez. Abierta desde 1945, es famosa por sus tacos rojos de deshebrada con papas al vapor y cueritos, además de flautas y enchiladas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Taquería+Juárez+Galeana+Norte+123+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Galeana Norte 123, Centro, Monterrey"
+      },
+      {
+        "id": 6,
+        "titulo": "Tostadas La Siberia",
+        "texto": "Tostadas La Siberia. Clásico desde 1946 que sirve icónicas tostadas con guacamole de tomatillo, pollo desmenuzada y crema.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tostadas+La+Siberia+Colegio+Civil+1029+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Colegio Civil 1029 Norte, Centro, Monterrey"
+      },
+      {
+        "id": 7,
+        "titulo": "Tacos AK-B",
+        "texto": "Tacos AK-B. Más de 40 años preparando tacos de trompo de sirloin con tocino y trompo de cerdo tradicional.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+AK-B+Av+José+Vasconcelos+633+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. José Vasconcelos 633, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 8,
+        "titulo": "Tacos Atarantados",
+        "texto": "Tacos Atarantados. Destacada opción para disfrutar de una buena variedad de tacos de trompo y carne.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Atarantados+Av+Manuel+L+Barragán+550+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Manuel L. Barragán 550, Valle de Anáhuac, Monterrey"
+      },
+      {
+        "id": 9,
+        "titulo": "El Papalote Taco & Grill",
+        "texto": "El Papalote Taco & Grill. Propuesta muy rica de tacos con un estilo gringo bien definido.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Papalote+Taco+&+Grill+Av+Revolución+450+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Revolución Nuevo León 450, Contry, Monterrey"
+      },
+      {
+        "id": 10,
+        "titulo": "Tacos Ahogados Acosta Originales",
+        "texto": "Tacos Ahogados Acosta Originales. Antojitos estilo Guadalajara sirviendo tradicionales tacos y tortas ahogadas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Ahogados+Acosta+Originales+Cacama+405+San+Nicolás+de+los+Garza",
+        "etiqueta": "comida",
+        "direccion": "Cacama 405, Azteca, San Nicolás de los Garza"
+      },
+      {
+        "id": 11,
+        "titulo": "Chicharronería Mendez Jr.",
+        "texto": "Chicharronería Mendez Jr. Delicioso chicharrón crujiente en una sucursal estratégicamente pegada al estadio.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Chicharronería+Mendez+Jr+Benito+Juárez+828+Guadalupe",
+        "etiqueta": "comida",
+        "direccion": "Benito Juárez 828, Centro de Guadalupe, Guadalupe"
+      },
+      {
+        "id": 12,
+        "titulo": "Taquería Orinoco",
+        "texto": "Taquería Orinoco. Una de las taquerías más populares de la zona, ubicada justo en el corazón del Centrito Valle.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Taquería+Orinoco+Río+Orinoco+101+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Orinoco 101, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 13,
+        "titulo": "Tacos dorados de la alberca",
+        "texto": "Tacos dorados de la alberca. Un rincón tradicional especializado en la preparación de clásicos tacos dorados de papa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+dorados+de+la+alberca+Juan+Zuazua+123+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Juan Zuazua 123, Centro, Monterrey"
+      },
+      {
+        "id": 14,
+        "titulo": "Tacos El Compadre (del Muerto)",
+        "texto": "Tacos El Compadre (del Muerto). Con más de 50 años y mención en la Guía Michelin, destacan por sus tacos dorados de cabeza de puerco.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+El+Compadre+Nicolás+Bravo+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Nicolás Bravo s/n, Centro, Monterrey"
+      },
+      {
+        "id": 15,
+        "titulo": "Tortas La Purísima",
+        "texto": "Tortas La Purísima. Con más de 50 años elaborando tortas en pan telera artesanal con frijoles, quesos y porciones masivas de aguacate.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tortas+La+Purísima+Privada+Lic+Verdad+759+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Privada Lic. Verdad 759, Centro, Monterrey"
+      },
+      {
+        "id": 16,
+        "titulo": "Tacos Doña Mary La Gritona",
+        "texto": "Tacos Doña Mary La Gritona. Taquería de carrito que se ha consagrado en la escena local tras ganar una estrella Michelin.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Doña+Mary+La+Gritona+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Francisco I. Madero, Centro, Monterrey"
+      },
+      {
+        "id": 17,
+        "titulo": "San Carlos tacos",
+        "texto": "San Carlos tacos. Puesto de tacos mañaneros espectaculares respaldado por la calidad y el sazón del mismo grupo del restaurante San Carlos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=San+Carlos+tacos+Av+Ignacio+Morones+Prieto+2803+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Ignacio Morones Prieto 2803 Pte, Loma Larga, Monterrey"
+      },
+      {
+        "id": 18,
+        "titulo": "San Carlos",
+        "texto": "San Carlos. Institución de cocina norestense con 41 años de experiencia, ampliamente reconocidos por tener al cabrito como su gran especialidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=San+Carlos+Av+Ignacio+Morones+Prieto+2803+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Ignacio Morones Prieto 2803 Pte, Loma Larga, Monterrey"
+      },
+      {
+        "id": 19,
+        "titulo": "Capri",
+        "texto": "Capri. Auténtica cocina norestense con platillos tradicionales como hígado encebollado, carne frita y atropellado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Capri+Allende+Nuevo+León",
+        "etiqueta": "comida",
+        "direccion": "Sucursales en Centro de Allende y Los Cavazos, Santiago"
+      },
+      {
+        "id": 20,
+        "titulo": "Mata de Chile",
+        "texto": "Mata de Chile. Una excelente propuesta de cocina norestense que ofrece flechas de res, aguachile de res, empalmes y tacos de carne asada.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mata+de+Chile+Av+la+Luz+102+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. la Luz 102, Villas La Rioja, Monterrey"
+      },
+      {
+        "id": 21,
+        "titulo": "Sr. Latino",
+        "texto": "Sr. Latino. Cocina casera norestense desde 1949; su especialidad es la Sincronizada Carmelita, bañada en salsa de frijoles y queso panela.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Sr+Latino+Río+Mississippi+235+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Mississippi 235, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 22,
+        "titulo": "Manolín",
+        "texto": "Manolín. El restaurante más antiguo de Monterrey (1937), famoso por servir un machacado que ha sido catalogado como el mejor de la ciudad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Manolín+Av+Francisco+I+Madero+1975+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Francisco I. Madero 1975, Centro, Monterrey"
+      },
+      {
+        "id": 23,
+        "titulo": "El Rey del Cabrito",
+        "texto": "El Rey del Cabrito. Un lugar totalmente emblemático en la ciudad para disfrutar del cabrito preparado al estilo tradicional.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Rey+del+Cabrito+Constitución+817+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Constitución 817-Oriente, Centro, Monterrey"
+      },
+      {
+        "id": 24,
+        "titulo": "El Gran Pastor",
+        "texto": "El Gran Pastor. Otro de los grandes referentes tradicionales y obligados para comer el clásico cabrito regiomontano.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Gran+Pastor+Av+Madero+3126+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Madero 3126 Pte, Mitras Sur, Monterrey"
+      },
+      {
+        "id": 25,
+        "titulo": "El Jonuco",
+        "texto": "El Jonuco. Restaurante con mención en la Guía Michelin, considerado una parada imperdible para probar alta cocina norestense.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Jonuco+Mariano+Abasolo+102-A+Apodaca",
+        "etiqueta": "comida",
+        "direccion": "Mariano Abasolo 102-A, Cabecera Municipal, Apodaca Centro, Apodaca"
+      },
+      {
+        "id": 26,
+        "titulo": "Los Hidalgos",
+        "texto": "Los Hidalgos. Excelente opción enfocada en comida mexicana tradicional y cortes de carne de gran calidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Los+Hidalgos+Av+Lázaro+Cárdenas+2660+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Lázaro Cárdenas 2660, Zona Valle"
+      },
+      {
+        "id": 27,
+        "titulo": "Los Fresnos",
+        "texto": "Los Fresnos. Un rincón gastronómico muy tradicional dedicado por completo a la cocina regiomontana.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Los+Fresnos+Gral+Ignacio+Zaragoza+349+Apodaca",
+        "etiqueta": "comida",
+        "direccion": "Gral. Ignacio Zaragoza 349, Cabecera Municipal, Apodaca Centro, Apodaca"
+      },
+      {
+        "id": 28,
+        "titulo": "El Lingote",
+        "texto": "El Lingote. Deliciosa comida norestense con una vista espectacular, ubicado dentro del Parque Fundidora en el Museo del Acero.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Lingote+Parque+Fundidora+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Fundidora s/n, Obrera, Monterrey"
+      },
+      {
+        "id": 29,
+        "titulo": "La buena barra",
+        "texto": "La buena barra. Destaca por sus excelentes platillos norestenses e impecable ambiente en la zona de San Pedro.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+buena+barra+Río+Missouri+600+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Missouri 600 Ote. local 307, Zona Valle de Santa Engracia, San Pedro Garza García"
+      },
+      {
+        "id": 30,
+        "titulo": "Perihuete",
+        "texto": "Perihuete. Excelente opción para disfrutar de mariscos frescos preparados al más puro y delicioso estilo Sinaloa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Perihuete+Lázaro+Garza+Ayala+3400+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Lázaro Garza Ayala 3400, Casco Urbano, San Pedro Garza García"
+      },
+      {
+        "id": 31,
+        "titulo": "Café Laurel",
+        "texto": "Café Laurel. Un espacio contemporáneo ideal para disfrutar de una gran propuesta gastronómica y de café.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Café+Laurel+Av+del+Roble+660+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. del Roble 660 local A2-111, Valle del Campestre, San Pedro Garza García"
+      },
+      {
+        "id": 32,
+        "titulo": "Pangea",
+        "texto": "Pangea. El legendario restaurante del chef Guillermo González Beristáin, reconocido con una estrella Michelin.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Pangea+Av+del+Roble+660+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. del Roble 660, Valle del Campestre, San Pedro Garza García"
+      },
+      {
+        "id": 33,
+        "titulo": "La Nacional",
+        "texto": "La Nacional. Un clásico contemporáneo regiomontano famoso por sus cortes, entradas y excelente ambiente.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Nacional+Av+San+Jerónimo+1106+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. San Jerónimo 1106, Miravalle, Monterrey"
+      },
+      {
+        "id": 34,
+        "titulo": "El Gallo 71",
+        "texto": "El Gallo 71. Restaurante de cocina contemporánea ideal para comer bien, con gran ambiente y excelentes cortes.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Gallo+71+Av+José+Vasconcelos+71+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. José Vasconcelos 71, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 35,
+        "titulo": "El Jonuco",
+        "texto": "El Jonuco. Cocina norestense imperdible con mención honorífica en la prestigiada Guía Michelin.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Jonuco+Mariano+Abasolo+102-A+Apodaca",
+        "etiqueta": "comida",
+        "direccion": "Mariano Abasolo 102-A, Cabecera Municipal, Apodaca Centro, Apodaca"
+      },
+      {
+        "id": 36,
+        "titulo": "Vernáculo",
+        "texto": "Vernáculo. Extraordinaria propuesta mexicana galardonada con una estrella Michelin. ¡Una parada totalmente imperdible!",
+        "url": "https://www.google.com/maps/search/?api=1&query=Vernáculo+Av+Cto+Frida+Kahlo+303+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Cto. Frida Kahlo 303, Valle Oriente, San Pedro Garza García"
+      },
+      {
+        "id": 37,
+        "titulo": "Koli",
+        "texto": "Koli. Alta cocina del noreste a cargo de los hermanos Rivera Río, galardonado con una estrella Michelin.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Koli+Río+Amazonas+225+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Amazonas 225, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 38,
+        "titulo": "Cometa",
+        "texto": "Cometa. Propuesta contemporánea que rinde un sabroso homenaje a los sabores e ingredientes tradicionales de México.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cometa+Libertad+261+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Libertad 261, Casco Urbano, San Pedro Garza García"
+      },
+      {
+        "id": 39,
+        "titulo": "Jabalina",
+        "texto": "Jabalina. Deliciosa comida norestense servida en un ambiente relajado y con mucho estilo en el Barrio Antiguo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Jabalina+Padre+Mier+859+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Padre Mier 859, Barrio Antiguo, Centro, Monterrey"
+      },
+      {
+        "id": 40,
+        "titulo": "Fonda San Francisco",
+        "texto": "Fonda San Francisco. El taller creativo del chef Adrián Herrera, ofreciendo una cocina de autor irreverente y sabrosa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Fonda+San+Francisco+Gómez+Morín+323+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Gómez Morín 323, Santa Engracia, San Pedro Garza García"
+      },
+      {
+        "id": 41,
+        "titulo": "Cara de Vaca",
+        "texto": "Cara de Vaca. Deliciosa comida norestense enfocada en el fuego, los vinos naturales y el producto local.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cara+de+Vaca+Av+José+Vasconcelos+1226+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. José Vasconcelos 1226, Casco Urbano, San Pedro Garza García"
+      },
+      {
+        "id": 42,
+        "titulo": "Bardot",
+        "texto": "Bardot. Un sofisticado bistró francés contemporáneo con una oferta culinaria y de coctelería impecable.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bardot+Av+del+Roble+660+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. del Roble 660 I-W301, Valle del Campestre, San Pedro Garza García"
+      },
+      {
+        "id": 43,
+        "titulo": "Tatemate",
+        "texto": "Tatemate. Excelente propuesta de comida mexicana gourmet que destaca además por su hermosa terraza.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tatemate+Av+Manuel+Gómez+Morín+1105+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Manuel Gómez Morín 1105 local 112, Zona Residencial Chipinque, San Pedro Garza García"
+      },
+      {
+        "id": 44,
+        "titulo": "Anormal Gastropub",
+        "texto": "Anormal Gastropub. Un gastropub con un concept muy cool, ideal para disfrutar de buena comida y tragos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Anormal+Gastropub+Av+Ricardo+Margáin+Zozaya+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Ricardo Margáin Zozaya, San Pedro Garza García"
+      },
+      {
+        "id": 45,
+        "titulo": "Animal Calzada",
+        "texto": "Animal Calzada. Un restobar muy flashy especializado en carnes y mariscos preparados a la parrilla desde su rooftop.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Animal+Calzada+Calzada+del+Valle+333+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Calzada del Valle 333, Rooftop, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 46,
+        "titulo": "Grand Cru",
+        "texto": "Grand Cru. Considerado el mejor restaurante francés de la ciudad; un espacio pequeño y exclusivo donde es necesario reservar con antelación.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Grand+Cru+Av+de+la+Industria+300+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. de la Industria 300 local 9, Veredalta, San Pedro Garza García"
+      },
+      {
+        "id": 47,
+        "titulo": "Lady’s Tex BBQ",
+        "texto": "Lady’s Tex BBQ. Excelente propuesta para disfrutar de un auténtico barbecue al puro estilo estadounidense.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Lady’s+Tex+BBQ+Jordan+1144+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Jordan 1144, Mitras Centro, Monterrey"
+      },
+      {
+        "id": 48,
+        "titulo": "Old Jimmys",
+        "texto": "Old Jimmys. Un rincón parrillero dedicado por completo al BBQ gringo de gran calidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Old+Jimmys+Plutarco+Elías+Calles+107+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Plutarco Elías Calles 107, Barrio Tampiquito, San Pedro Garza García"
+      },
+      {
+        "id": 49,
+        "titulo": "Ichikani",
+        "texto": "Ichikani. Una barra de sushi espectacular que destaca por la frescura y calidad de sus productos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ichikani+Av+Lázaro+Cárdenas+2400+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Lázaro Cárdenas 2400 local A5, Zona San Agustín, Monterrey"
+      },
+      {
+        "id": 50,
+        "titulo": "Bodegón de Rosas",
+        "texto": "Bodegón de Rosas. Un lugar muy cool y con excelente ambiente especializado en deliciosa cocina española.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bodegón+de+Rosas+Río+Colorado+415+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Colorado 415-L3, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 51,
+        "titulo": "Los Arcos",
+        "texto": "Los Arcos. Clásico y reconocido restaurante especializado en mariscos frescos preparados al estilo Sinaloa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Los+Arcos+Río+Colorado+415+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Colorado 415-L3, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 52,
+        "titulo": "Yama-to",
+        "texto": "Yama-to. Una propuesta culinaria muy completa que fusiona lo mejor de la cocina tradicional japonesa y coreana.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Yama-to+Río+Amazonas+230+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Amazonas 230, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 53,
+        "titulo": "Sr. Tanaka",
+        "texto": "Sr. Tanaka. Restaurante bar con un gran ambiente e impecable propuesta de cocina japonesa contemporánea.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Sr+Tanaka+Calzada+Mauricio+Fernández+Garza+102+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Calzada Mauricio Fernández Garza 102, Del Valle, Monterrey"
+      },
+      {
+        "id": 54,
+        "titulo": "Las Aliadas",
+        "texto": "Las Aliadas. El lugar ideal para disfrutar de una excelente variedad de alitas y snacks en la zona Contry.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Las+Aliadas+Av+Alfonso+Reyes+318+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Alfonso Reyes 318, Contry San Juanito, Monterrey"
+      },
+      {
+        "id": 55,
+        "titulo": "Barvin",
+        "texto": "Barvin. Un espacio versátil perfecto para desayunar por la mañana que por las tardes se transforma en un bar con gran ambiente.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Barvin+Av+Del+Estado+205+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Del Estado 205, Tecnológico, Distrito Tec, Monterrey"
+      },
+      {
+        "id": 56,
+        "titulo": "Meme’s Diner",
+        "texto": "Meme’s Diner. Curiosa e increíble fusión de cocina de Louisiana, Texas y Nuevo León, con desayunos espectaculares disponibles todo el día.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Meme’s+Diner+Av+Francisco+I+Madero+2201+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Francisco I. Madero 2201, Centro, Monterrey"
+      },
+      {
+        "id": 57,
+        "titulo": "Casertano",
+        "texto": "Casertano. Deliciosa cocina italiana con una especialización y maestría absoluta en masas de pizza artesanales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casertano+Av+la+Luz+100+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. la Luz 100 local C-06, Plaza La Luz, Monterrey"
+      },
+      {
+        "id": 58,
+        "titulo": "El Muelle de al lado",
+        "texto": "El Muelle de al lado. Mariscos deliciosos en una sucursal que destaca por ofrecer una de las mejores vistas hacia la montaña en Monterrey.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Muelle+de+al+lado+Calzada+del+Valle+401+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Calzada del Valle 401, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 59,
+        "titulo": "El Arbolito",
+        "texto": "El Arbolito. El único lugar en la ciudad especializado por completo en la preparación de papas asadas rellenas con carne.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Arbolito+Av+Del+Estado+300+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Del Estado 300, Tecnológico, Distrito Tec, Monterrey"
+      },
+      {
+        "id": 60,
+        "titulo": "Bola",
+        "texto": "Bola. Una excelente opción de nevería artesanal con sabores únicos y de gran calidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bola+Nevería+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Humberto Lobo, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 61,
+        "titulo": "Nolita Ice Cream",
+        "texto": "Nolita Ice Cream. Deliciosa nieve artesanal servida de manera muy original dentro de panes que ellos mismos hornean.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Nolita+Ice+Cream+Av+San+Jerónimo+1104+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. San Jerónimo 1104 local 16, Segundo Piso, San Jerónimo, Monterrey"
+      },
+      {
+        "id": 62,
+        "titulo": "Ugurt",
+        "texto": "Ugurt. El spot perfecto si buscas disfrutar de una refrescante y deliciosa nieve de yogurt con toppings.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ugurt+Av+Cto+Frida+Kahlo+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Cto. Frida Kahlo, Valle Oriente, San Pedro Garza García"
+      },
+      {
+        "id": 63,
+        "titulo": "Half & Half",
+        "texto": "Half & Half. Un rincón enfocado en la salud que ofrece una excelente variedad de snacks saludables y funcionales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Half+&+Half+Av+Roberto+Garza+Sada+101+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Roberto Garza Sada 101, Carrizalejo, San Pedro Garza García"
+      },
+      {
+        "id": 64,
+        "titulo": "Apetit",
+        "texto": "Apetit. El lugar ideal si buscas sandwichitos gourmet, postres frescos y ensaladas prácticas listas para llevar.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Apetit+Modesto+Arreola+402+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Modesto Arreola Pte. 402, Centro, Monterrey"
+      },
+      {
+        "id": 65,
+        "titulo": "Freddo’s",
+        "texto": "Freddo’s. Una auténtica tradición de toda la vida para disfrutar de chamoyadas, snacks y tostitos preparados con todo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Freddo’s+Av+Bosques+del+Valle+200+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Bosques del Valle 200, San Pedro Garza García"
+      },
+      {
+        "id": 66,
+        "titulo": "Oscar Drink’s",
+        "texto": "Oscar Drink’s. Parada clásica de los regios en la Carretera para refrescarse con litros de micheladas o clamatos preparados muy poco tradicionales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Oscar+Drink’s+Carretera+Nacional+Santiago",
+        "etiqueta": "comida",
+        "direccion": "Carretera Nacional km 257, El Ranchito, Santiago"
+      },
+      {
+        "id": 67,
+        "titulo": "Elotes Revolcados",
+        "texto": "Elotes Revolcados. Un concepto curioso y bastante monchoso de elotes preparados con combinaciones de ingredientes fuera de lo común.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Elotes+Revolcados+Cerro+del+Cubilete+101+Guadalupe",
+        "etiqueta": "comida",
+        "direccion": "Cerro del Cubilete 101, Provivienda de Guadalupe, Guadalupe"
+      },
+      {
+        "id": 68,
+        "titulo": "Melté",
+        "texto": "Melté. Delicioso antojo especializado en fresas y plátanos generosamente bañados en chocolate tipo Dubái o amargo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Melté+Río+Tamazunchale+401+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Tamazunchale 401, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 69,
+        "titulo": "Kali Coffee Roasters",
+        "texto": "Kali Coffee Roasters. Sin duda alguna, considerado por los locales como el lugar con el mejor café de especialidad de Monterrey.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Kali+Coffee+Roasters+Av+Cto+Frida+Kahlo+303+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Cto. Frida Kahlo 303, Haciendas de La Sierra, San Pedro Garza García"
+      },
+      {
+        "id": 70,
+        "titulo": "Jardin Sucre",
+        "texto": "Jardin Sucre. Una encantadora opción de repostería de inspiración francesa con panes artesanales recién horneados todos los días.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Jardin+Sucre+Río+Guadalquivir+136+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Guadalquivir 136, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 71,
+        "titulo": "Boxer Coffee",
+        "texto": "Boxer Coffee. Una propuesta refrescante con un concept y enfoque de café diferente a las barras tradicionales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Boxer+Coffee+Florida+1712+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Florida 1712, Paraíso, Monterrey"
+      },
+      {
+        "id": 72,
+        "titulo": "Maurice Le Chat",
+        "texto": "Maurice Le Chat. Un rinconcito de café muy acogedor y con muchísimo carácter en la zona de Guadalupe.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Maurice+Le+Chat+Villarreal+300+Guadalupe",
+        "etiqueta": "comida",
+        "direccion": "Villarreal 300, La Victoria, Guadalupe"
+      },
+      {
+        "id": 73,
+        "titulo": "Moracuya",
+        "texto": "Moracuya. Un espacio acogedor enfocado en ofrecer café de calidad y opciones de desayunos saludables.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Moracuya+Av+de+la+Juventud+100+San+Nicolás+de+los+Garza",
+        "etiqueta": "comida",
+        "direccion": "Av. de la Juventud 100, Cuauhtémoc, Residencial Potrero de Anáhuac, San Nicolás de los Garza"
+      },
+      {
+        "id": 74,
+        "titulo": "Tomata",
+        "texto": "Tomata. El spot ideal para quienes buscan comenzar el día con una propuesta culinaria de desayuno saludable y fresca.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tomata+Río+Amazonas+311+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Amazonas 311, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 75,
+        "titulo": "Maut",
+        "texto": "Maut. Una excelente barra de especialidad para los apasionados de disfrutar un café delicioso y bien extraído.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Maut+Río+Mississippi+270+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Mississippi 270, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 76,
+        "titulo": "Bar 1900",
+        "texto": "Bar 1900. Inaugurado en 1912 dentro del Gran Hotel Ancira; mantiene intacta su arquitectura histórica y ofrece música en vivo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bar+1900+Melchor+Ocampo+443+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Melchor Ocampo 443, Centro, Monterrey"
+      },
+      {
+        "id": 77,
+        "titulo": "Botanero Moritas",
+        "texto": "Botanero Moritas. Tradicional e histórico botanero regiomontano que destaca por su gran ambiente y platillos norestenses de primer nivel.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Botanero+Moritas+Independencia+143+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Independencia 143, Casco Urbano, San Pedro Garza García"
+      },
+      {
+        "id": 78,
+        "titulo": "Pinto Bar",
+        "texto": "Pinto Bar. Dinámico bar al aire libre ideal para gente joven, complementado con una muy buena propuesta de cocina y drinks.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Pinto+Bar+Av+del+Roble+300+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. del Roble 300, Residencial Santa Bárbara, San Pedro Garza García"
+      },
+      {
+        "id": 79,
+        "titulo": "Hemingway",
+        "texto": "Hemingway. Un bar con excelente ondita, buena mixología y una selección musical ideal para pasar una noche a gusto.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Hemingway+Av+del+Roble+670+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. del Roble 670, Valle del Campestre, San Pedro Garza García"
+      },
+      {
+        "id": 80,
+        "titulo": "Bar El Arbolito",
+        "texto": "Bar El Arbolito. Ubicado en la colonia María Luisa, se consagra como uno de las cantinas tradicionales más antiguas y clásicas de Monterrey.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bar+El+Arbolito+Av+Venustiano+Carranza+303+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. Venustiano Carranza 303, María Luisa, Monterrey"
+      },
+      {
+        "id": 81,
+        "titulo": "Saxy",
+        "texto": "Saxy. Sofisticado bar de jazz en vivo que ofrece una atmósfera inigualable y una cocina bastante buena para cenar.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Saxy+Jazz+Bar+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Sótano de Plaza O2, Av. José Vasconcelos 150, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 82,
+        "titulo": "Metapatio",
+        "texto": "Metapatio. Un gran patio cultural urbano cuya especialidad son las cervezas artesanales y las propuestas de música en vivo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Metapatio+Melchor+Ocampo+130+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Melchor Ocampo 130, Centro, Monterrey"
+      },
+      {
+        "id": 83,
+        "titulo": "Cabaret",
+        "texto": "Cabaret. Exclusivo antro ubicado en Plaza O2 a un lado del hotel Habita, ideal para disfrutar de música en vivo y excelente ambiente.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cabaret+Plaza+O2+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. José Vasconcelos 150 Ote, Plaza O2, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 84,
+        "titulo": "Casa Padre Mier",
+        "texto": "Casa Padre Mier. Un concepto de bar tranquilo y relajado, perfecto para platicar y disfrutar de buenas sesiones de música en vivo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Padre+Mier+Padre+Mier+970+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Padre Mier 970, Centro, Monterrey"
+      },
+      {
+        "id": 85,
+        "titulo": "Duets",
+        "texto": "Duets. Un piano bar sumamente divertido e interactivo donde la música y el buen ambiente están garantizados.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Duets+Río+Missouri+600+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Río Missouri 600, 3er Piso, Zona Valle de Santa Engracia, San Pedro Garza García"
+      },
+      {
+        "id": 86,
+        "titulo": "Elton",
+        "texto": "Elton. Concepto de bar-antro especializado en el dinámico formato de 'dueling pianos' para cantar a todo pulmón.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Elton+Av+José+Vasconcelos+1403+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. José Vasconcelos 1403, Zona Santa Bárbara Poniente, San Pedro Garza García"
+      },
+      {
+        "id": 87,
+        "titulo": "La Divinata",
+        "texto": "La Divinata. Famosa repostería local conocida por sus exquisitos pasteles, panecillos, muffins y botanas preparadas de alta calidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Divinata+Av+Lázaro+Cárdenas+2311+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Lázaro Cárdenas 2311, Zona Loma Larga Oriente, San Pedro Garza García"
+      },
+      {
+        "id": 88,
+        "titulo": "Pan de Pan",
+        "texto": "Pan de Pan. Panadería artesanal enfocada en ofrecer piezas y hogazas de pan verdaderamente deliciosas con excelente técnica.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Pan+de+Pan+Av+Anillo+Periférico+1824+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Anillo Periférico 1824, Hacienda San Jerónimo, Monterrey"
+      },
+      {
+        "id": 89,
+        "titulo": "La Botiga",
+        "texto": "La Botiga. Un rincón gastronómico completísimo que sirve panes artesanales, café, pasteles impecables y desayunos deliciosos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Botiga+Lic+Benito+Juárez+808+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Lic. Benito Juárez Nte 808, Zona de los Callejones, San Pedro Garza García"
+      },
+      {
+        "id": 90,
+        "titulo": "BreAd Panaderos",
+        "texto": "BreAd Panaderos. Referente absoluto de panadería de masa madre y café de especialidad dentro de Parque Arboleda.",
+        "url": "https://www.google.com/maps/search/?api=1&query=BreAd+Panaderos+Av+del+Roble+660+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. del Roble 660, local E-101, Valle del Campestre, San Pedro Garza García"
+      },
+      {
+        "id": 91,
+        "titulo": "Mille Délices",
+        "texto": "Mille Délices. Un pedacito de Francia en la ciudad especializado en alta repostería y panadería francesa deliciosa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mille+Délices+Av+Eugenio+Garza+Sada+2762+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Eugenio Garza Sada Sur 2762, Tecnológico, Distrito Tec, Monterrey"
+      },
+      {
+        "id": 92,
+        "titulo": "Montacometa",
+        "texto": "Montacometa. Un taller de repostería fina sumamente popular en la zona, especializados con maestría en brownies y galletas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Montacometa+Río+Manzanares+425+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Manzanares 425, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 93,
+        "titulo": "Kko Panadería Artesanal",
+        "texto": "Kko Panadería Artesanal. Espacio dedicado a la panadería artesanal que cuida detalladamente los procesos de fermentación.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Kko+Panadería+Artesanal+Av+Paseo+de+los+Leones+1620+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Av. Paseo de los Leones 1620, Cumbres 1er Sector, Monterrey"
+      },
+      {
+        "id": 94,
+        "titulo": "Suculenta",
+        "texto": "Suculenta. Una gran alternativa que combina café de especialidad con una propuesta de repostería 100% vegana.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Suculenta+Av+Cto+Frida+Kahlo+303+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Cto. Frida Kahlo 303, Haciendas de La Sierra, San Pedro Garza García"
+      },
+      {
+        "id": 95,
+        "titulo": "El Nuevo Nopal",
+        "texto": "El Nuevo Nopal. Tradicional panadería mexicana que rescata las recetas y sabores clásicos de las piezas de pan de barrio.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Nuevo+Nopal+José+María+Morelos+146+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "José María Morelos 146, Centro, Monterrey"
+      },
+      {
+        "id": 96,
+        "titulo": "Dulce Libélula",
+        "texto": "Dulce Libélula. Un taller artesanal enfocado en la elaboración cuidadosa de panes, galletas y pasteles personalizados de gran sabor.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Dulce+Libélula+Río+Guadalquivir+312+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Guadalquivir Ote. 312, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 97,
+        "titulo": "Panem",
+        "texto": "Panem. El punto de encuentro ideal para desayunar o comer, famosos por hornear diariamente algunas de las mejores conchas de la zona.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Panem+Melchor+Ocampo+130+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Melchor Ocampo 130, Centro, Monterrey"
+      },
+      {
+        "id": 98,
+        "titulo": "Nana Chapa",
+        "texto": "Nana Chapa. Exquisitas galletas horneadas al auténtico estilo Nueva York, una parada dulce totalmente imperdible.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Nana+Chapa+Río+Manzanares+325+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Río Manzanares 325 local 1 y 2, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 99,
+        "titulo": "Pan de Cajeta",
+        "texto": "Pan de Cajeta. Un rincón repostero donde su nombre lo dice absolutamente todo sobre su deliciosa especialidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Pan+de+Cajeta+Av+Sta+Barbara+333+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Sta. Barbara 333, Palo Blanco, San Pedro Garza García"
+      },
+      {
+        "id": 100,
+        "titulo": "Panadería El Puerto",
+        "texto": "Panadería El Puerto. Establecimiento tradicional dedicado a la elaboración diaria de pan dulce mexicano clásico de barrio.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Panadería+El+Puerto+Modesto+Arreola+200+Monterrey",
+        "etiqueta": "comida",
+        "direccion": "Modesto Arreola Pte. 200, Centro, Monterrey"
+      },
+      {
+        "id": 101,
+        "titulo": "Museo de Historia Mexicana",
+        "texto": "Museo de Historia Mexicana. Espacio cultural clave para comprender a detalle el devenir de la historia nacional desde la perspectiva del norte del país.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+de+Historia+Mexicana+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Dr. José Ma. Coss 445, Centro, Monterrey"
+      },
+      {
+        "id": 102,
+        "titulo": "MUNE - Museo del Noreste",
+        "texto": "MUNE - Museo del Noreste. Complementa al de Historia con un gran enfoque regional; destaca su terraza con una hermosa vista al Paseo Santa Lucía.",
+        "url": "https://www.google.com/maps/search/?api=1&query=MUNE+Museo+del+Noreste+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Dr. José Ma. Coss 445, Centro, Monterrey"
+      },
+      {
+        "id": 103,
+        "titulo": "Museo de Palacio de Gobierno",
+        "texto": "Museo de Palacio de Gobierno. Recinto histórico ubicado en el corazón del palacio estatal que resguarda la memoria política y social de Nuevo León.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+de+Palacio+de+Gobierno+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Ignacio Zaragoza y 5 de Mayo s/n, Centro, Monterrey"
+      },
+      {
+        "id": 104,
+        "titulo": "Parque Rufino Tamayo",
+        "texto": "Parque Rufino Tamayo. Espacio público verde en pleno distrito financiero decorado con esculturas contemporáneas y sede constante de festivales de jazz y cine.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Parque+Rufino+Tamayo+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. Rufino Tamayo 100, San Pedro Garza García"
+      },
+      {
+        "id": 105,
+        "titulo": "Museo La Milarca",
+        "texto": "Museo La Milarca. Impresionante y singular proyecto museístico de Mauricio Fernández Garza con una narrativa arquitectónica envolvente única en el país.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+La+Milarca+San+Pedro+Garza+García",
+        "etiqueta": "cultura",
+        "direccion": "Eugenio Garza Lagüera 400, Zona Valle Oriente, San Pedro Garza García"
+      },
+      {
+        "id": 106,
+        "titulo": "MARCO - Museo de Arte Contemporáneo",
+        "texto": "MARCO - Museo de Arte Contemporáneo. Diseñado por Ricardo Legorreta, se consolida como el museo de arte contemporáneo más importante del norte de México.",
+        "url": "https://www.google.com/maps/search/?api=1&query=MARCO+Museo+de+Arte+Contemporáneo+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Juan Zuazua y Padre Raymundo Jardón, Centro, Monterrey"
+      },
+      {
+        "id": 107,
+        "titulo": "Muscera - Museo de Cera Monterrey",
+        "texto": "Muscera - Museo de Cera Monterrey. Divertido espacio interactivo que alberga figuras de cera de personajes históricos y celebridades dentro de Fundidora.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+de+Cera+Monterrey+Fundidora",
+        "etiqueta": "cultura",
+        "direccion": "Av. Fundidora s/n, Parque Fundidora, Obrera, Monterrey"
+      },
+      {
+        "id": 108,
+        "titulo": "Faro del Comercio",
+        "texto": "Faro del Comercio. Monumental ícono moderno diseñado por Luis Barragán y Raúl Ferrera cuyo haz de luz verde proyecta la fuerza industrial regia.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Faro+del+Comercio+Macroplaza+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Macroplaza, Centro, Monterrey"
+      },
+      {
+        "id": 109,
+        "titulo": "Barrio Antiguo",
+        "texto": "Barrio Antiguo. Pintoresca e histórica zona donde conviven armoniosamente la arquitectura tradicional, galerías de arte, bares culturales y espacios independientes.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Barrio+Antiguo+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Centro, Monterrey"
+      },
+      {
+        "id": 110,
+        "titulo": "Teatro de la Ciudad",
+        "texto": "Teatro de la Ciudad. El principal escenario público del estado destinado a grandes puestas en escena de teatro, danza y prestigiosos festivales culturales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Teatro+de+la+Ciudad+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Dr. José María Coss 732, Centro, Monterrey"
+      },
+      {
+        "id": 111,
+        "titulo": "Colegio Civil Centro Cultural Universitario",
+        "texto": "Colegio Civil Centro Cultural Universitario. Recinto histórico universitario con una vibrante agenda de música clásica, exposiciones y actividades académicas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Colegio+Civil+Centro+Cultural+Universitario+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Colegio Civil s/n, Centro, Monterrey"
+      },
+      {
+        "id": 112,
+        "titulo": "Chipinque",
+        "texto": "Chipinque. El área natural protegida y parque ecológico más emblemático y querido de la zona metropolitana, ideal para el senderismo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Chipinque+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Carretera a Chipinque Km 2.5, San Pedro Garza García"
+      },
+      {
+        "id": 113,
+        "titulo": "Bioparque Estrella",
+        "texto": "Bioparque Estrella. Gran parque temático que ofrece un emocionante recorrido tipo safari interactivo acompañado de hermosos senderos naturales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bioparque+Estrella+Montemorelos",
+        "etiqueta": "entretenimiento",
+        "direccion": "Carretera a Rayones Km 9, Montemorelos"
+      },
+      {
+        "id": 114,
+        "titulo": "Cola de Caballo",
+        "texto": "Cola de Caballo. Impresionante cascada natural rodeada de vegetación que ofrece paseos, tirolesa y miradores espectaculares.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cola+de+Caballo+Santiago+Nuevo+León",
+        "etiqueta": "entretenimiento",
+        "direccion": "Carretera a la Cola de Caballo, Santiago"
+      },
+      {
+        "id": 115,
+        "titulo": "Villa de Santiago",
+        "texto": "Villa de Santiago. Encantador Pueblo Mágico pegado a la zona metropolitana que regala hermosas postales coloniales y una gran vista a la Presa de la Boca.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Villa+de+Santiago+Nuevo+León",
+        "etiqueta": "cultura",
+        "direccion": "Zona Centro, Santiago"
+      },
+      {
+        "id": 116,
+        "titulo": "Río Ramos",
+        "texto": "Río Ramos. Ubicado dentro del Parque Nacional Cumbres, es un paraje natural sumamente popular por sus hermosas aguas cristalinas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Río+Ramos+Allende+Nuevo+León",
+        "etiqueta": "entretenimiento",
+        "direccion": "Allende, Nuevo León"
+      },
+      {
+        "id": 117,
+        "titulo": "Cascada Chipitín",
+        "texto": "Cascada Chipitín. Impresionante destino de turismo de aventura con caídas de agua espectaculares; se requiere experiencia en hiking y guía obligatorio.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cascada+Chipitín+Santiago+Nuevo+León",
+        "etiqueta": "entretenimiento",
+        "direccion": "Santiago, Nuevo León"
+      },
+      {
+        "id": 118,
+        "titulo": "Parque Fundidora",
+        "texto": "Parque Fundidora. El corazón de la ciudad; una antigua e histórica siderúrgica transformada con éxito en un gigantesco parque público, recreativo y cultural.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Parque+Fundidora+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. Fundidora y Adolfo Prieto, Obrera, Monterrey"
+      },
+      {
+        "id": 119,
+        "titulo": "Museo del Acero Horno 3",
+        "texto": "Museo del Acero Horno 3. Un extraordinario centro de ciencia y tecnología instalado dentro de un alto horno original de la antigua fundidora de acero.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Horno+3+Parque+Fundidora+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Parque Fundidora, Av. Fundidora, Monterrey"
+      },
+      {
+        "id": 120,
+        "titulo": "Centro de las Artes Nuevo León",
+        "texto": "Centro de las Artes Nuevo León. Complejo artístico y cultural multidisciplinario rescatado magistralmente a partir de antiguas naves industriales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Centro+de+las+Artes+Nuevo+León+Parque+Fundidora",
+        "etiqueta": "cultura",
+        "direccion": "Parque Fundidora, Av. Fundidora, Monterrey"
+      },
+      {
+        "id": 121,
+        "titulo": "Nave Generadores del Centro de las Artes",
+        "texto": "Nave Generadores del Centro de las Artes. Espacio industrial recuperado y destinado como galería experimental para grandes exposiciones e instalaciones contemporáneas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Nave+Generadores+Parque+Fundidora",
+        "etiqueta": "cultura",
+        "direccion": "Parque Fundidora, Av. Fundidora, Monterrey"
+      },
+      {
+        "id": 122,
+        "titulo": "Cineteca y Fototeca Nuevo León",
+        "texto": "Cineteca y Fototeca Nuevo León. Espacio de excelencia para el cine de autor que además resguarda uno de los archivos fotográficos más importantes del país.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cineteca+y+Fototeca+Nuevo+León+Parque+Fundidora",
+        "etiqueta": "cultura",
+        "direccion": "Parque Fundidora, Av. Fundidora, Monterrey"
+      },
+      {
+        "id": 123,
+        "titulo": "Auditorio Banamex",
+        "texto": "Auditorio Banamex. Uno de los recintos más importantes de la ciudad para conciertos y producciones escénicas de escala media-alta dentro de Fundidora.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Auditorio+Banamex+Parque+Fundidora+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Parque Fundidora, Av. Fundidora, Centro, Monterrey"
+      },
+      {
+        "id": 124,
+        "titulo": "Macroplaza",
+        "texto": "Macroplaza. Una de las plazas públicas más grandes de América Latina, que integra la arquitectura gubernamental con el arte urbano y el espacio público.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Macroplaza+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Zona Centro, Monterrey"
+      },
+      {
+        "id": 125,
+        "titulo": "Showcenter Complex",
+        "texto": "Showcenter Complex. Venue contemporáneo y tecnológico ideal para presenciar conciertos, espectáculos de Broadway y producciones del Ballet de Monterrey.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Showcenter+Complex+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. Batallón de San Patricio 1000, Zona San Agustín, San Pedro Garza García"
+      },
+      {
+        "id": 126,
+        "titulo": "El Puente de la Unidad",
+        "texto": "El Puente de la Unidad. Estructura icónica diseñada por Óscar Bulnes y construida por Grupo Garza Ponce que conecta Monterrey y San Pedro sobre el Río Santa Catarina.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Puente+de+la+Unidad+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Blvd. Rogelio Cantú Gómez, Monterrey"
+      },
+      {
+        "id": 127,
+        "titulo": "Centrito Valle",
+        "texto": "Centrito Valle. Zona comercial y cultural en el corazón de San Pedro, repleta de cafeterías de especialidad, tiendas boutique y una vibrante vida local.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Centrito+Valle+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Zona San Pedro Garza García"
+      },
+      {
+        "id": 128,
+        "titulo": "Paseo Santa Lucía",
+        "texto": "Paseo Santa Lucía. Canal artificial navegable que conecta la Macroplaza con Parque Fundidora; un proyecto urbano histórico que redefinió el rostro de la ciudad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Paseo+Santa+Lucía+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Zona Centro, Monterrey"
+      },
+      {
+        "id": 129,
+        "titulo": "Mercado Callejero",
+        "texto": "Mercado Callejero. Tradicional e interesante tianguis dominical que ofrece una atractiva oferta de comida, eventos culturales y conciertos locales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mercado+Callejero+Zona+Tecnológico+Monterrey",
+        "etiqueta": "compras",
+        "direccion": "Zona Tecnológico, Monterrey"
+      },
+      {
+        "id": 130,
+        "titulo": "Bowler",
+        "texto": "Bowler. Un concepto moderno de boliche que combina perfectamente el entretenimiento con buena música y una rica propuesta de comida.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bowler+San+Pedro+Garza+García",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. Real San Agustín 301, Residencial San Agustín 1er Sector, San Pedro Garza García"
+      },
+      {
+        "id": 131,
+        "titulo": "Arboleda",
+        "texto": "Arboleda. Innovador desarrollo urbano diseñado por Sordo Madaleno que integra perfectamente arquitectura, paisaje, arte público y urbanismo privado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Arboleda+San+Pedro+Garza+García",
+        "etiqueta": "cultura",
+        "direccion": "Zona San Pedro Garza García"
+      },
+      {
+        "id": 132,
+        "titulo": "Arena Monterrey",
+        "texto": "Arena Monterrey. Imponente recinto masivo con tecnología de punta destinado a la presentation de conciertos internacionales y espectáculos de gran formato.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Arena+Monterrey+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. Francisco I. Madero 2500, Obrera, Monterrey"
+      },
+      {
+        "id": 133,
+        "titulo": "Auditorio Luis Elizondo",
+        "texto": "Auditorio Luis Elizondo. Uno de los recintos culturales más importantes para la música clásica, el teatro y la danza, siendo sede frecuente del Ballet de Monterrey.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Auditorio+Luis+Elizondo+Monterrey",
+        "etiqueta": "entretenimiento",
+        "direccion": "Zona Tecnológico, Monterrey"
+      },
+      {
+        "id": 134,
+        "titulo": "Centro Roberto Garza Sada",
+        "texto": "Centro Roberto Garza Sada (Tadao Ando). Espectacular obra de concreto del arquitecto japonés Tadao Ando conocida como 'La puerta de la creación'; una joya de la arquitectura contemporánea que funciona como escuela de arte y diseño de la UDEM.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Centro+Roberto+Garza+Sada+San+Pedro+Garza+García",
+        "etiqueta": "cultura",
+        "direccion": "San Pedro Garza García"
+      },
+      {
+        "id": 135,
+        "titulo": "Expedition FEMSA",
+        "texto": "Expedition FEMSA. Edificio contemporáneo dentro del Tec de Monterrey que destaca por su volumetría modular y espacios flexibles, representando el nuevo lenguaje arquitectónico del campus.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Expedition+FEMSA+Tec+de+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Zona Tecnológico, Monterrey"
+      },
+      {
+        "id": 136,
+        "titulo": "Plaza México",
+        "texto": "Plaza México. Tradicional plaza comercial en el corazón de la ciudad, ideal para encontrar una gran variedad de tiendas de artesanías mexicanas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Plaza+México+Centro+Monterrey",
+        "etiqueta": "compras",
+        "direccion": "Zona Centro, Monterrey"
+      },
+      {
+        "id": 137,
+        "titulo": "Fashion Drive",
+        "texto": "Fashion Drive. Moderno centro comercial y de entretenimiento que alberga exclusivas tiendas de moda, restaurantes y salas de cine premium.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Fashion+Drive+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Zona San Pedro Garza García"
+      },
+      {
+        "id": 138,
+        "titulo": "Punto Valle",
+        "texto": "Punto Valle. Un 'town center' vertical de diseño vanguardista con una curaduría de tiendas de lujo, gastronomía de primer nivel y espacios al aire libre.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Punto+Valle+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Zona San Pedro Garza García"
+      },
+      {
+        "id": 139,
+        "titulo": "Paseo San Pedro",
+        "texto": "Paseo San Pedro. Exclusivo centro comercial reconocido por albergar las tiendas departamentales y boutiques más prestigiosas de la zona metropolitana.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Paseo+San+Pedro+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Zona San Pedro Garza García"
+      },
+      {
+        "id": 140,
+        "titulo": "Heart Ego Contemporary Art",
+        "texto": "Heart Ego Contemporary Art. Galería enfocada en la exhibición, promoción y venta de propuestas sólidas de arte contemporáneo nacional e internacional.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Heart+Ego+Contemporary+Art+San+Pedro+Garza+García",
+        "etiqueta": "cultura",
+        "direccion": "Reforma 208, Casco Urbano, San Pedro Garza García"
+      },
+      {
+        "id": 141,
+        "titulo": "Colector",
+        "texto": "Colector. Galería contemporánea clave en la escena regia que trabaja con una destacada selección de artistas latinoamericanos tanto emergentes como consolidados.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Colector+San+Pedro+Garza+García",
+        "etiqueta": "cultura",
+        "direccion": "Lázaro Garza Ayala Pte. 436, Casco Urbano, San Pedro Garza García"
+      },
+      {
+        "id": 142,
+        "titulo": "Galería Estéreo",
+        "texto": "Galería Estéreo. Un espacio sumamente activo, fresco e independiente dentro del circuito y la escena de arte contemporáneo local.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Galería+Estéreo+San+Pedro+Garza+García",
+        "etiqueta": "cultura",
+        "direccion": "Av. Sta. Barbara 431, Casco Urbano, San Pedro Garza García"
+      },
+      {
+        "id": 143,
+        "titulo": "Galería Etra",
+        "texto": "Galería Etra. Espacio cultural con un programa constante de exposiciones y una fuerte presencia en el mercado del arte contemporáneo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Galería+Etra+San+Pedro+Garza+García",
+        "etiqueta": "cultura",
+        "direccion": "Plaza Águilas, Av. José Vasconcelos 301 local 3, San Pedro Garza García"
+      },
+      {
+        "id": 144,
+        "titulo": "Arte Actual Mexicano",
+        "texto": "Arte Actual Mexicano. Prestigiosa e histórica galería enfocada por completo en promover y consolidar el trabajo de artistas contemporáneos mexicanos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Arte+Actual+Mexicano+San+Pedro+Garza+García",
+        "etiqueta": "cultura",
+        "direccion": "Av. de la Industria 300 local C17, Punto Central, San Pedro Garza García"
+      },
+      {
+        "id": 145,
+        "titulo": "Olarte Galería y Taller",
+        "texto": "Olarte Galería y Taller. Un dinámico espacio que fusiona de manera muy orgánica los procesos de producción artística, talleres formativos y salas de exhibición.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Olarte+Galería+y+Taller+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Albino Espinosa 1200, Centro, Monterrey"
+      },
+      {
+        "id": 146,
+        "titulo": "Fiji Projects",
+        "texto": "Fiji Projects. Innovador proyecto independiente con una curaduría muy fina y enfocada en el arte contemporáneo emergente.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Fiji+Projects+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "15 de mayo 409, Centro, Monterrey"
+      },
+      {
+        "id": 147,
+        "titulo": "La Cresta",
+        "texto": "La Cresta. Plataforma independiente que opera de manera experimental entre galería, taller y laboratorio creativo dentro de la nueva escena artística regia.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Cresta+Monterrey",
+        "etiqueta": "cultura",
+        "direccion": "Centro, Monterrey"
+      },
+      {
+        "id": 148,
+        "titulo": "Sexta Avenida",
+        "texto": "Sexta Avenida. Tradicional establecimiento especializado en la venta de botas y sombreros de excelente calidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Sexta+Avenida+Monterrey",
+        "etiqueta": "compras",
+        "direccion": "Sucursales en el Centro y en la col. Mitras Centro, Monterrey"
+      },
+      {
+        "id": 149,
+        "titulo": "Laura Cantú",
+        "texto": "Laura Cantú. Reconocida propuesta local de joyería y accesorios de diseño de autor con un estilo único y muy padre.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Laura+Cantú+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Plaza Duendes, Calz. Mauricio Fernández Garza 102 local 14, San Pedro Garza García"
+      },
+      {
+        "id": 150,
+        "titulo": "Lorenza",
+        "texto": "Lorenza. Exclusiva boutique dedicada al diseño y venta de accesorios contemporáneos y joyería fina.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Lorenza+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Av. Manuel Gómez Morín 918, Comercial Gómez Morín, San Pedro Garza García"
+      },
+      {
+        "id": 151,
+        "titulo": "Velvet Stationery",
+        "texto": "Velvet Stationery. Tienda especializada en artículos de diseño impreso, papelería fina, print personalizado y regalos originales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Velvet+Stationery+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Calzada del Valle 400 local PB02, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 152,
+        "titulo": "RUN24",
+        "texto": "RUN24. La tienda de especialidad definitiva y un auténtico paraíso para los apasionados del running y el hiking en la ciudad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=RUN24+Monterrey",
+        "etiqueta": "compras",
+        "direccion": "Camino al mirador 2810, La República, Monterrey"
+      },
+      {
+        "id": 153,
+        "titulo": "Ana Tere Canales",
+        "texto": "Ana Tere Canales. Increíbles y coloridas fundas para teléfonos, tablets y computadoras ilustradas a mano con una propuesta padrísima.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ana+Tere+Canales+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Av. Manuel Gómez Morín 918, San Pedro Garza García"
+      },
+      {
+        "id": 154,
+        "titulo": "Quererlo",
+        "texto": "Quererlo. Coqueta boutique de accesorios, complementos de moda y joyería con un catálogo muy cuidado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Quererlo+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Calzada del Valle 404, Plaza las Calzadas, Planta Baja, San Pedro Garza García"
+      },
+      {
+        "id": 155,
+        "titulo": "Malvaloca",
+        "texto": "Malvaloca. Marca súper cool de zapatos con diseños hermosos hechos por talentosas diseñadoras locales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Malvaloca+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Río Moctezuma 224, Del Valle, San Pedro Garza García"
+      },
+      {
+        "id": 156,
+        "titulo": "Guayabate",
+        "texto": "Guayabate. Deliciosos e impecables dulces tradicionales mexicanos elaborados artesanalmente a base de guayaba.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Guayabate+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Manuel Gómez Morín 2005, Residencial Chipinque, San Pedro Garza García"
+      },
+      {
+        "id": 157,
+        "titulo": "Celina",
+        "texto": "Celina. Una tienda padrísima con una gran selección de regalos, accesorios de cocina, vajillas para montar mesas y recetarios.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Celina+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Gómez Morín 112-4, Valle de San Ángel, San Pedro Garza García"
+      },
+      {
+        "id": 158,
+        "titulo": "Kollectiva",
+        "texto": "Kollectiva. Concept store que reúne una fina curaduría de marcas locales que van desde snacks y chocolates hasta regalos únicos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Kollectiva+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Av. Manuel Gómez Morín 1101, Carrizalejo, San Pedro Garza García"
+      },
+      {
+        "id": 159,
+        "titulo": "Estrelas Haute Living",
+        "texto": "Estrelas Haute Living. Exclusiva e inspiradora galería y tienda enfocada en piezas de arte y artículos de alta decoración.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Estrelas+Haute+Living+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Av. Manuel Gómez Morín 900, Carrizalejo, San Pedro Garza García"
+      },
+      {
+        "id": 160,
+        "titulo": "Binny Brun",
+        "texto": "Binny Brun. Emblemática chocolatería artesanal con una tradición de toda la vida y un arraigo súper local en San Pedro.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Binny+Brun+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Bosques del Valle 111, Bosques del Valle 1er Sector, San Pedro Garza García"
+      },
+      {
+        "id": 161,
+        "titulo": "Caramela",
+        "texto": "Caramela. Chocolatería fina contemporánea que destaca por la enorme calidad de sus piezas y sus combinaciones de sabores.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Caramela+San+Pedro+Garza+García",
+        "etiqueta": "comida",
+        "direccion": "Av. Bosques del Valle 106-A, Bosques del Valle 1er Sector, San Pedro Garza García"
+      },
+      {
+        "id": 162,
+        "titulo": "Cabanna",
+        "texto": "Cabanna. Una divertida y muy surtida opción ideal para encontrar los mejores detalles y regalitos para jóvenes y niños.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cabanna+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Av. Manuel Gómez Morín 918 local 12, Comercial Gómez Morín, San Pedro Garza García"
+      },
+      {
+        "id": 163,
+        "titulo": "Malandra",
+        "texto": "Malandra. Popular tienda de accesorios y joyería que combina diseños de tendencia padrísimos con excelentes precios.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Malandra+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Av. José Vasconcelos 301, Bosques del Valle 1er Sector, San Pedro Garza García"
+      },
+      {
+        "id": 164,
+        "titulo": "Delicias Importadas",
+        "texto": "Delicias Importadas. Tienda especializada tipo minisúper dedicada por completo a traer los productos y snacks más populares de Estados Unidos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Delicias+Importadas+San+Pedro+Garza+García",
+        "etiqueta": "compras",
+        "direccion": "Plaza Bosques del Valle, Av. Vasconcelos 150, Monterrey"
+      },
+      {
+        "id": 165,
+        "titulo": "La Pulga Río",
+        "texto": "La Pulga Río. Icónico e histórico mercadito popular de la ciudad, famoso por sus múltiples puestos de novedades, electrónica y ropa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Pulga+Río+Monterrey",
+        "etiqueta": "compras",
+        "direccion": "Serafín Peña 1010, Centro, Monterrey"
+      }
+    ]
+
+    var puntos = [
+      {
+        "id": 24,
+        "coord": [1133, 174]
+      },
+      {
+        "id": 47,
+        "coord": [1146, 247]
+      },
+      {
+        "id": 16,
+        "coord": [1116, 313]
+      },
+      {
+        "id": 56,
+        "coord": [1122, 339]
+      },
+      {
+        "id": 22,
+        "coord": [1120, 372]
+      },
+      {
+        "id": 1,
+        "coord": [989, 386]
+      },
+      {
+        "id": 14,
+        "coord": [979, 343]
+      },
+      {
+        "id": 100,
+        "coord": [974, 393]
+      },
+      {
+        "id": 80,
+        "coord": [963, 366]
+      },
+      {
+        "id": 84,
+        "coord": [878, 399]
+      },
+      {
+        "id": 15,
+        "coord": [869, 433]
+      },
+      {
+        "id": 165,
+        "coord": [828, 427]
+      },
+      {
+        "id": 82,
+        "coord": [815, 549]
+      },
+      {
+        "id": 64,
+        "coord": [951, 555]
+      },
+      {
+        "id": 111,
+        "coord": [936, 578]
+      },
+      {
+        "id": 2,
+        "coord": [984, 618]
+      },
+      {
+        "id": 5,
+        "coord": [971, 640]
+      },
+      {
+        "id": 148,
+        "coord": [1099, 546]
+      },
+      {
+        "id": 6,
+        "coord": [1093, 614]
+      },
+      {
+        "id": 13,
+        "coord": [951, 696]
+      },
+      {
+        "id": 145,
+        "coord": [968, 755]
+      },
+      {
+        "id": 146,
+        "coord": [915, 643]
+      },
+      {
+        "id": 103,
+        "coord": [907, 672]
+      },
+      {
+        "id": 101,
+        "coord": [895, 715]
+      },
+      {
+        "id": 102,
+        "coord": [885, 704]
+      },
+      {
+        "id": 124,
+        "coord": [880, 674]
+      },
+      {
+        "id": 110,
+        "coord": [865, 682]
+      },
+      {
+        "id": 128,
+        "coord": [901, 835]
+      },
+      {
+        "id": 109,
+        "coord": [829, 712]
+      },
+      {
+        "id": 39,
+        "coord": [831, 692]
+      },
+      {
+        "id": 23,
+        "coord": [773, 677]
+      },
+      {
+        "id": 106,
+        "coord": [789, 668]
+      },
+      {
+        "id": 108,
+        "coord": [802, 658]
+      },
+      {
+        "id": 97,
+        "coord": [801, 639]
+      },
+      {
+        "id": 76,
+        "coord": [813, 629]
+      },
+      {
+        "id": 136,
+        "coord": [832, 619]
+      },
+      {
+        "id": 95,
+        "coord": [834, 578]
+      },
+      {
+        "id": 132,
+        "coord": [1036, 965]
+      },
+      {
+        "id": 118,
+        "coord": [1028, 1027]
+      },
+      {
+        "id": 123,
+        "coord": [1001, 1068]
+      },
+      {
+        "id": 122,
+        "coord": [999, 1019]
+      },
+      {
+        "id": 107,
+        "coord": [984, 1018]
+      },
+      {
+        "id": 120,
+        "coord": [974, 1027]
+      },
+      {
+        "id": 28,
+        "coord": [963, 1051]
+      },
+      {
+        "id": 119,
+        "coord": [977, 1042]
+      },
+      {
+        "id": 121,
+        "coord": [975, 1063]
+      },
+      {
+        "id": 134,
+        "coord": [611, 122]
+      },
+      {
+        "id": 89,
+        "coord": [564, 199]
+      },
+      {
+        "id": 142,
+        "coord": [486, 318]
+      },
+      {
+        "id": 77,
+        "coord": [515, 181]
+      },
+      {
+        "id": 38,
+        "coord": [513, 148]
+      },
+      {
+        "id": 140,
+        "coord": [495, 150]
+      },
+      {
+        "id": 141,
+        "coord": [463, 106]
+      },
+      {
+        "id": 30,
+        "coord": [477, 84]
+      },
+      {
+        "id": 99,
+        "coord": [386, 269]
+      },
+      {
+        "id": 41,
+        "coord": [410, 291]
+      },
+      {
+        "id": 86,
+        "coord": [413, 310]
+      },
+      {
+        "id": 7,
+        "coord": [375, 373]
+      },
+      {
+        "id": 126,
+        "coord": [577, 447]
+      },
+      {
+        "id": 60,
+        "coord": [389, 398]
+      },
+      {
+        "id": 48,
+        "coord": [337, 440]
+      },
+      {
+        "id": 166,
+        "coord": [328, 485]
+      },
+      {
+        "id": 143,
+        "coord": [315, 479]
+      },
+      {
+        "id": 33,
+        "coord": [634, 626]
+      },
+      {
+        "id": 61,
+        "coord": [626, 647]
+      },
+      {
+        "id": 161,
+        "coord": [304, 506]
+      },
+      {
+        "id": 160,
+        "coord": [291, 503]
+      },
+      {
+        "id": 164,
+        "coord": [305, 521]
+      },
+      {
+        "id": 34,
+        "coord": [319, 532]
+      },
+      {
+        "id": 53,
+        "coord": [375, 561]
+      },
+      {
+        "id": 149,
+        "coord": [389, 566]
+      },
+      {
+        "id": 81,
+        "coord": [306, 589]
+      },
+      {
+        "id": 83,
+        "coord": [307, 606]
+      },
+      {
+        "id": 65,
+        "coord": [307, 622]
+      },
+      {
+        "id": 21,
+        "coord": [420, 610]
+      },
+      {
+        "id": 12,
+        "coord": [437, 613]
+      },
+      {
+        "id": 127,
+        "coord": [418, 635]
+      },
+      {
+        "id": 70,
+        "coord": [443, 639]
+      },
+      {
+        "id": 52,
+        "coord": [437, 652]
+      },
+      {
+        "id": 68,
+        "coord": [426, 652]
+      },
+      {
+        "id": 75,
+        "coord": [401, 660]
+      },
+      {
+        "id": 37,
+        "coord": [430, 666]
+      },
+      {
+        "id": 96,
+        "coord": [437, 696]
+      },
+      {
+        "id": 74,
+        "coord": [426, 702]
+      },
+      {
+        "id": 155,
+        "coord": [413, 673]
+      },
+      {
+        "id": 50,
+        "coord": [399, 719]
+      },
+      {
+        "id": 138,
+        "coord": [421, 770]
+      },
+      {
+        "id": 85,
+        "coord": [397, 796]
+      },
+      {
+        "id": 29,
+        "coord": [394, 781]
+      },
+      {
+        "id": 40,
+        "coord": [368, 747]
+      },
+      {
+        "id": 82,
+        "coord": [369, 725]
+      },
+      {
+        "id": 151,
+        "coord": [343, 698]
+      },
+      {
+        "id": 98,
+        "coord": [379, 692]
+      },
+      {
+        "id": 58,
+        "coord": [362, 686]
+      },
+      {
+        "id": 45,
+        "coord": [365, 671]
+      },
+      {
+        "id": 139,
+        "coord": [318, 711]
+      },
+      {
+        "id": 78,
+        "coord": [288, 725]
+      },
+      {
+        "id": 154,
+        "coord": [270, 702]
+      },
+      {
+        "id": 150,
+        "coord": [254, 700]
+      },
+      {
+        "id": 162,
+        "coord": [252, 686]
+      },
+      {
+        "id": 153,
+        "coord": [267, 686]
+      },
+      {
+        "id": 159,
+        "coord": [187, 675]
+      },
+      {
+        "id": 158,
+        "coord": [143, 688]
+      },
+      {
+        "id": 43,
+        "coord": [130, 682]
+      },
+      {
+        "id": 63,
+        "coord": [86, 650]
+      },
+      {
+        "id": 156,
+        "coord": [74, 668]
+      },
+      {
+        "id": 144,
+        "coord": [216, 760]
+      },
+      {
+        "id": 46,
+        "coord": [234, 760]
+      },
+      {
+        "id": 42,
+        "coord": [265, 748]
+      },
+      {
+        "id": 131,
+        "coord": [278, 750]
+      },
+      {
+        "id": 31,
+        "coord": [277, 770]
+      },
+      {
+        "id": 90,
+        "coord": [289, 762]
+      },
+      {
+        "id": 79,
+        "coord": [301, 757]
+      },
+      {
+        "id": 32,
+        "coord": [289, 747]
+      },
+      {
+        "id": 44,
+        "coord": [331, 804]
+      },
+      {
+        "id": 51,
+        "coord": [549, 867]
+      },
+      {
+        "id": 18,
+        "coord": [528, 934]
+      },
+      {
+        "id": 17,
+        "coord": [527, 949]
+      },
+      {
+        "id": 9,
+        "coord": [336, 905]
+      },
+      {
+        "id": 130,
+        "coord": [277, 971]
+      },
+      {
+        "id": 137,
+        "coord": [309, 992]
+      },
+      {
+        "id": 125,
+        "coord": [276, 1008]
+      },
+      {
+        "id": 49,
+        "coord": [288, 1043]
+      },
+      {
+        "id": 87,
+        "coord": [295, 1095]
+      },
+      {
+        "id": 26,
+        "coord": [254, 1118]
+      },
+      {
+        "id": 104,
+        "coord": [222, 1100]
+      },
+      {
+        "id": 105,
+        "coord": [215, 1120]
+      },
+      {
+        "id": 94,
+        "coord": [220, 1196]
+      },
+      {
+        "id": 62,
+        "coord": [249, 1190]
+      },
+      {
+        "id": 36,
+        "coord": [225, 1180]
+      },
+      {
+        "id": 69,
+        "coord": [235, 1189]
+      }
+    ]
+
+    var puntoBanco = [
+      [1090, 511],
+      [983, 528]
+    ]
+
+    var puntoWifi = [
+      [1046, 1165],
+      [843, 589],
+      [934, 553],
+      [1136, 340],
+      [337, 983],
+      [531, 200]
+    ]
+
+    var typeColors = {
+      comida: '#ff6b6b',
+      cultura: '#3b82f6',
+      compras: '#10b981',
+      entretenimiento: '#a855f7',
+      bancos: '#138D75',
+      wifi: '#E74C3C',
+      otro: '#888888'
+    }
+
+    function buildPopupContent(titulo = null, texto = null, url = null, direccion= null) {
+      var html = `<div class="popup-title">${titulo}</div>`;
+      var descripcion = texto;
+
+      if (descripcion) html += `<div class="popup-description">${descripcion}</div>`;
+
+      if (direccion) {
+        html += `<hr style="border:none;border-top:1px solid #cacaca; margin: 10px 0;">`;
+        html += `<div class="popup-address">📍 ${direccion}</div>`;
+      }
+
+      if (url) {
+        html += `<a class="popup-maps-link" href="${url}" target="_blank" rel="noopener noreferrer">📌 Abrir en Google Maps</a>`;
+      }
+      return html;
+    }
+
+    var allCircles = [];
+
+    puntos.forEach(function (punto) {
+      var infoLugar = datosLugares.find(function (lugar) {
+        return lugar.id === punto.id;
+      });
+
+      var titulo = infoLugar ? infoLugar.titulo : `Punto ${punto.id}`;
+      var texto = infoLugar ? infoLugar.texto : 'Sin descripción.';
+      var url = infoLugar ? infoLugar.url : null;
+      var tipoEtiqueta = infoLugar ? infoLugar.etiqueta : 'otro';
+      var direccion = infoLugar ? infoLugar.direccion : null;
+      var textoPopup = buildPopupContent(titulo, texto, url, direccion);
+      var circle = L.circle(punto.coord, { weight: 1 }).bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: tipoEtiqueta,
+        coord: punto.coord
+      });
+    });
+
+    puntoBanco.forEach(function (coord, index) {
+      var textoPopup = buildPopupContent('Banco Azteca');
+      var circle = L.circle(coord, { weight: 1 })
+        .bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: 'bancos',
+        coord: coord
+      });
+    });
+
+    puntoWifi.forEach(function (coord, index) {
+      var textoPopup = buildPopupContent('Wifi TotalPlay');
+      var circle = L.circle(coord, { weight: 1 }).bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: 'wifi',
+        coord: coord
+      });
+    });
+
+    var filterButtons = document.querySelectorAll('.filter-btn');
+
+    function resetCircleStyles() {
+      allCircles.forEach(function (item) {
+        var color = typeColors[item.type] || typeColors['otro'];
+        item.circle.setStyle({
+          fillColor: 'transparent',color: 'transparent',weight: 1,radius: 12,fillOpacity: 0.8
+        });
+        if (!map.hasLayer(item.circle)) {
+          item.circle.addTo(map);
+        }
+      });
+      map.fitBounds(bounds);
+    }
+
+    function highlightFiltered(filterType) {
+      var matchingCoords = [];
+      var cColor = typeColors[filterType] || '#f5a623';
+
+      allCircles.forEach(function (item) {
+        if (item.type === filterType) {
+
+          item.circle.setStyle({
+            fillColor: cColor,  color: cColor,  weight: 2,  radius: 16,  fillOpacity: 0.9
+          });
+          if (!map.hasLayer(item.circle)) {
+            item.circle.addTo(map);
+          }
+          matchingCoords.push(item.coord);
+        } else {
+
+          if (map.hasLayer(item.circle)) {
+            map.removeLayer(item.circle);
+          }
+        }
+      });
+
+      if (matchingCoords.length > 0) {
+        var filterBounds = L.latLngBounds(matchingCoords);
+        map.fitBounds(filterBounds, { padding: [60, 60], maxZoom: 1 });
+      }
+    }
+
+    resetCircleStyles();
+
+    filterButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+
+        filterButtons.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+
+        var activeFilter = btn.getAttribute('data-type');
+
+        if (activeFilter === 'all') {
+          resetCircleStyles();
+        } else {
+          highlightFiltered(activeFilter);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
