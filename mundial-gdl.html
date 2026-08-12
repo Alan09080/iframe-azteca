@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mundial GDL</title>
+  <link rel="icon" href="https://www.tvazteca.com/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="https://www.tvazteca.com/apple-touch-icon.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    html,
+    body {
+      font-family: 'Manrope', sans-serif;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+    #map {
+      background-color: #efd16f;
+      height: calc(100vh - 56px); /* Restamos la altura del banner */
+      left: 0;
+      position: fixed !important;
+      top: 56px;
+      width: 100vw;
+    }
+    /* --- ESTILOS DEL BANNER DE FILTROS --- */
+    #filter-banner {
+      align-items: center;
+      background: #1a1a1a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      display: flex;
+      gap: 8px;
+      height: 56px;
+      left: 0;
+      overflow-x: auto;
+      padding: 0 16px;
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 1000;
+    }
+    #filter-banner::-webkit-scrollbar {
+      height: 4px;
+    }
+    #filter-banner::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 2px;
+    }
+    .filter-btn {
+        background: #2a2a2a;
+        border-radius: 20px;
+        border: 1px solid #444;
+        color: #ccc;
+        cursor: pointer;
+        flex-shrink: 0;
+        font-family: 'Manrope', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 14px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .filter-btn:hover {
+      background: #333;
+      border-color: #666;
+      color: #fff;
+    }
+    .filter-btn.active {
+      background: #f5a623;
+      border-color: #f5a623;
+      color: #1a1a1a;
+    }
+    /* --- ESTILOS DEL POPUP PERSONALIZADO --- */
+    .leaflet-popup-content-wrapper {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      color: #000000;
+      overflow: hidden;
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      font-family: 'Manrope', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px 18px;
+    }
+    .leaflet-popup-tip {
+      background: #ffffff;
+    }
+    .leaflet-popup-close-button {
+      color: #999 !important;
+      font-size: 18px !important;
+      right: 10px !important;
+      top: 8px !important;
+    }
+    .popup-title {
+      color: #75001d;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      padding-right: 16px;
+    }
+    .popup-description {
+      color: #000000;
+      font-size: 12.5px;
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+    a.popup-maps-link {
+      color: #75001d;
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: left;
+      text-decoration: none;
+      transition: color 0.2s linear 0s;
+    }
+    .popup-maps-link:hover {
+      color: rgba(117, 0, 29, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <div id="filter-banner">
+    <button class="filter-btn active" data-type="all">Todos</button>
+    <button class="filter-btn" data-type="comida">🍽️ Comida</button>
+    <button class="filter-btn" data-type="cultura">🏛️ Cultura</button>
+    <button class="filter-btn" data-type="compras">🛍️ Compras</button>
+    <button class="filter-btn" data-type="entretenimiento">🎶 Entretenimiento</button>
+    <button class="filter-btn" data-type="bancos">🏦 Banco Azteca</button>
+    <button class="filter-btn" data-type="wifi">📶 Wifi TotalPlay</button>
+  </div>
+
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script>
+    const mapSource = 'https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/TJCSMQSOUNAHRKL25PWJH35ASI.jpg';
+    var map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -0.25,
+        maxZoom: 2,
+        zoomSnap: 0.25,
+        zoomDelta: 0.25
+    });
+
+    var altoImagen = 1753;
+    var anchoImagen = 1320;
+
+    var bounds = [[0, 0], [altoImagen, anchoImagen]];
+    L.imageOverlay(mapSource, bounds).addTo(map);
+
+    map.fitBounds(bounds);
+    map.setMaxBounds(bounds);
+
+    var datosLugares = [
+      {
+        "id": 1,
+        "titulo": "Bruna",
+        "texto": "Bruna. Cocina mexicana contemporánea del chef Óscar Garza en una galería de arte con jardines espectaculares. Famoso por sus 10 probaditas de mole.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bruna+Miguel+Lerdo+de+Tejada+2418+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Miguel Lerdo de Tejada 2418, col. Lafayette"
+      },
+      {
+        "id": 2,
+        "titulo": "Xokol",
+        "texto": "Xokol. Comedor de relevancia mundial en Santa Tere dedicado a la cocina de raíz y el maíz, bajo la maestría de Xrysw Ruelas y Óscar Segundo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Xokol+Herrera+y+Cairo+1375+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Herrera y Cairo 1375, col. Santa Teresita"
+      },
+      {
+        "id": 3,
+        "titulo": "La Panga del Impostor",
+        "texto": "La Panga del Impostor. Icónica marisquería de herencia del chef Antonio de Livier. Destaca por sus tostadas de autor y la birria de almeja.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Panga+del+Impostor+Miguel+Lerdo+de+Tejada+2189+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Miguel Lerdo de Tejada 2189, col. Americana"
+      },
+      {
+        "id": 4,
+        "titulo": "palReal",
+        "texto": "palReal. Destino predilecto para desayunar o comer, destacando por su lonche de pancita y café de especialidad bajo el enfoque del chef Fabián Delgado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=palReal+Lope+de+Vega+113+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Lope de Vega 113, col. Arcos Vallarta"
+      },
+      {
+        "id": 5,
+        "titulo": "Kasuga",
+        "texto": "Kasuga. Exclusivo restaurante para vivir uno de los mejores omakases de México con pesca excepcional, bajo la maestría del chef Daisuke Maeda.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Kasuga+Av+de+la+Paz+2342+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Av. de la Paz 2342, col. Americana"
+      },
+      {
+        "id": 6,
+        "titulo": "Hueso",
+        "texto": "Hueso. Joya arquitectónica decorada con miles de huesos, donde el chef Alfonso Cadena sirve clásicos como sus legendarios tuétanos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Hueso+Efraín+González+Luna+2061+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Efraín González Luna 2061, col. Americana"
+      },
+      {
+        "id": 7,
+        "titulo": "Anita Li",
+        "texto": "Anita Li. Comedor de fusión tailandesa, mexicana y mediterránea bajo la visión del chef Jorge Martínez. El taco tropical es imperdible.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Anita+Li+Av+Inglaterra+3100+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Av. Inglaterra 3100, col. Vallarta Poniente"
+      },
+      {
+        "id": 8,
+        "titulo": "Octo",
+        "texto": "Octo. Restaurante de inspiración marina reconocido mundialmente por su arquitectura, dirigido por el chef Óscar Garza.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Octo+Miguel+Lerdo+de+Tejada+2420+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Miguel Lerdo de Tejada 2420, col. Lafayette"
+      },
+      {
+        "id": 9,
+        "titulo": "Alcalde",
+        "texto": "Alcalde. Cocina franca del chef Francisco Ruano, fusionando raíces tapatías con técnica global y productos de temporada.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Alcalde+Av+México+2903+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Av. México 2903, col. Vallarta Norte"
+      },
+      {
+        "id": 10,
+        "titulo": "La Tequila",
+        "texto": "La Tequila. Institución con más de tres décadas dedicada a la cocina mexicana y destilados nacionales, bajo la sazón de la mayora Yoli Solano.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Tequila+Av+México+2830+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Av. México 2830, col. Vallarta Norte"
+      },
+      {
+        "id": 11,
+        "titulo": "Albergue Transitorio",
+        "texto": "Albergue Transitorio. Plataforma de diseño mexicano impulsada por Julia y Renata que incluye arte, indumentaria y cerámica.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Albergue+Transitorio+Av+de+la+Paz+2347+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Av. de la Paz 2347, col. Americana"
+      },
+      {
+        "id": 12,
+        "titulo": "Olmos & Flores",
+        "texto": "Olmos & Flores. Marca de diseño textil mexicano liderada por Víctor Olmos y Ali Flores, enfocada en la nueva identidad nacional.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Olmos+%26+Flores+Miguel+Lerdo+de+Tejada+2172+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Miguel Lerdo de Tejada 2172, col. Americana"
+      },
+      {
+        "id": 13,
+        "titulo": "Bestiario",
+        "texto": "Bestiario. Marca de moda responsable de Paloma Patlán, basada en una filosofía de bajo impacto ambiental.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bestiario+Andrés+Terán+35+A+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Andrés Terán 35 A, col. Americana"
+      },
+      {
+        "id": 14,
+        "titulo": "CHAMULA Hecho a mano",
+        "texto": "CHAMULA Hecho a mano. Proyecto de Bertín Sánchez y Esteban Leñero dedicado a visibilizar la maestría artesanal y alfarería mexicana.",
+        "url": "https://www.google.com/maps/search/?api=1&query=CHAMULA+Hecho+a+mano+Manuel+M+Diéguez+13+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Manuel M. Diéguez 13, col. Lafayette"
+      },
+      {
+        "id": 15,
+        "titulo": "Once Patios",
+        "texto": "Once Patios. Espacio dedicado al diseño y curaduría de artesanía 100% mexicana, inspirado en la riqueza cultural de Pátzcuaro.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Once+Patios+Ghilardi+12+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Ghilardi 12, col. Americana"
+      },
+      {
+        "id": 16,
+        "titulo": "Lo Esencial",
+        "texto": "Lo Esencial. Propuesta de diseño mexicano especializada en artículos de piel que priorizan la funcionalidad y durabilidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Lo+Esencial+Morelos+1760+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Morelos 1760, Ladrón de Guevara, col. Lafayette"
+      },
+      {
+        "id": 17,
+        "titulo": "Barrio Perro",
+        "texto": "Barrio Perro. Concept store dentro de Vía Libertad con artículos de diseño local, nutrición y accesorios para mascotas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Barrio+Perro+Colonias+221+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Colonias 221 local 05, col. Americana (dentro de Vía Libertad)"
+      },
+      {
+        "id": 18,
+        "titulo": "Oxen",
+        "texto": "Oxen. Concept store referente en Guadalajara con una curaduría enfocada en el universo masculino que reúne a más de 50 artistas y marcas nacionales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Oxen+Av+Miguel+Hidalgo+y+Costilla+1323+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Av. Miguel Hidalgo y Costilla 1323, col. Americana"
+      },
+      {
+        "id": 19,
+        "titulo": "Tributo",
+        "texto": "Tributo. Empresa de diseño multidisciplinario fundada por Laura y Gabriela Noriega que fusiona diseñadores contemporáneos con productores tradicionales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tributo+Hércules+2386+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Hércules 2386, col. Jardines del Bosque"
+      },
+      {
+        "id": 20,
+        "titulo": "Almacén de Botellas",
+        "texto": "Almacén de Botellas. Especialistas en cerveza artesanal con más de 40 líneas disponibles, incluyendo la Cervecería Porfirio y opciones sin alcohol.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Almacén+de+Botellas+Hidalgo+1151+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Hidalgo 1151, col. Americana"
+      },
+      {
+        "id": 21,
+        "titulo": "La Contra",
+        "texto": "La Contra. Tienda de vino mexicano con más de 400 etiquetas y sede de constantes catas y eventos especiales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Contra+José+Guadalupe+Zuno+Hernández+2129+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "José Guadalupe Zuno Hernández 2129, col. Americana"
+      },
+      {
+        "id": 22,
+        "titulo": "Tea Recs",
+        "texto": "Tea Recs. Espacio que combina la maestría de las infusiones de té con la cultura de la escucha atenta de vinilos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tea+Recs+Av+México+2136A+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Av. México 2136A, col. Ladrón de Guevara"
+      },
+      {
+        "id": 23,
+        "titulo": "Ene Sabrosura y conquiste",
+        "texto": "Ene Sabrosura y conquiste. Expendio de pan y postres de Nahir Carini, famoso por sus diversas versiones de tarta vasca.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ene+Sabrosura+y+conquiste+José+María+Morelos+1467+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "José María Morelos 1467, col. Americana"
+      },
+      {
+        "id": 24,
+        "titulo": "Karmele",
+        "texto": "Karmele. Panadería artesanal y café de especialidad, hogar de los famosos 'Karmelitos' (pan hojaldrado relleno).",
+        "url": "https://www.google.com/maps/search/?api=1&query=Karmele+Av+José+María+Morelos+2279+A+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Av. José María Morelos 2279 A, col. Arcos Vallarta"
+      },
+      {
+        "id": 25,
+        "titulo": "Loba Gastropub",
+        "texto": "Loba Gastropub. Ubicado sobre la fábrica de Cerveza Loba, es el lugar ideal para los amantes de la malta y la gastronomía.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Loba+Gastropub+Gregorio+Dávila+80+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Gregorio Dávila 80, col. Americana"
+      },
+      {
+        "id": 26,
+        "titulo": "Caravellé Helados",
+        "texto": "Caravellé Helados. Heladería artesanal de Carolina Barragán que utiliza productos de temporada y prácticas sostenibles.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Caravellé+Helados+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Sucursales en col. Santa Teresita y col. La Estancia"
+      },
+      {
+        "id": 27,
+        "titulo": "La Violeta",
+        "texto": "La Violeta. Tradicionales nieves de garrafa artesanales con un legado familiar desde 1935.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Violeta+Garibaldi+1378+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Garibaldi 1378, col. Santa Tere"
+      },
+      {
+        "id": 28,
+        "titulo": "Café Correcto",
+        "texto": "Café Correcto. Café de especialidad tostado con pasión, con oferta destacada de vermouth, ubicado en la Fábrica Morelos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Café+Correcto+José+María+Morelos+1134+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "José María Morelos 1134, Local 6, col. Americana"
+      },
+      {
+        "id": 29,
+        "titulo": "Culca",
+        "texto": "Culca. Tostadores expertos que controlan todo el proceso del café, desde la cosecha hasta la taza.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Culca+Café+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Sucursales en col. Providencia y col. Vallarta Norte"
+      },
+      {
+        "id": 30,
+        "titulo": "Binaural",
+        "texto": "Binaural. Barra de café de especialidad con excelente curaduría musical y diversos métodos de extracción.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Binaural+Javier+Mina+311+Zapopan",
+        "etiqueta": "comida",
+        "direccion": "Javier Mina 311, Zapopan"
+      },
+      {
+        "id": 31,
+        "titulo": "Impronta Casa Editorial",
+        "texto": "Impronta Casa Editorial. Taller de tipos móviles, librería y sala de arte con una agenda cultural vibrante y el Café Diamante.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Impronta+Casa+Editorial+Penitenciaría+414+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Penitenciaría 414, col. Americana"
+      },
+      {
+        "id": 32,
+        "titulo": "Strega Libros",
+        "texto": "Strega Libros. Librería especializada en ediciones ilustradas con un enfoque en actividades culturales, lectura y talleres.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Strega+Libros+José+María+Vigil+2991+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "José María Vigil 2991, col. Providencia"
+      },
+      {
+        "id": 33,
+        "titulo": "Plataforma de Arte Contemporáneo",
+        "texto": "Plataforma de Arte Contemporáneo. Espacio liderado por Nidia Elorriaga y José Noé Suro que proyecta arte actual, priorizando artistas de la Costa del Pacífico.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Plataforma+de+Arte+Contemporáneo+Ignacio+L+Vallarta+1246+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Ignacio L. Vallarta 1246, col. Americana"
+      },
+      {
+        "id": 34,
+        "titulo": "Galería Adentro",
+        "texto": "Galería Adentro. Espacio cultural contemporáneo fundado como un proyecto colaborativo entre los restaurantes Octo y Bruna.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Galería+Adentro+Lerdo+de+Tejada+2418+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Lerdo de Tejada 2418, col. Lafayette"
+      },
+      {
+        "id": 35,
+        "titulo": "Mezonte",
+        "texto": "Mezonte. Espacio dedicado a la preservación y difusión de los valores bioculturales del mezcal, con sala de información y degustación.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mezonte+Argentina+299+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Argentina 299, col. Americana"
+      },
+      {
+        "id": 36,
+        "titulo": "De la O Cantina",
+        "texto": "De la O Cantina. Propuesta de coctelería inspirada en ingredientes regional, complementada con una selecta oferta de destilados.",
+        "url": "https://www.google.com/maps/search/?api=1&query=De+la+O+Cantina+Argentina+70+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Argentina 70, col. Americana"
+      },
+      {
+        "id": 37,
+        "titulo": "El Gallo Altanero",
+        "texto": "El Gallo Altanero. Bar especializado en coctelería creativa y etiquetas de tequila poco comunes; incluye la Licorería Libertino en su planta baja.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Gallo+Altanero+Marsella+126+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Marsella 126, col. Americana"
+      },
+      {
+        "id": 38,
+        "titulo": "Gastón Wine Bar",
+        "texto": "Gastón Wine Bar. Concepto moderno que fusiona vinos de baja intervención con una excelente curaduría musical.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Gastón+Wine+Bar+Colomos+2546+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Colomos 2546, col. Italia Providencia"
+      },
+      {
+        "id": 39,
+        "titulo": "Turbio",
+        "texto": "Turbio. Bar de vinos naturales y mínima intervención que ofrece una propuesta de 'comfort food' inspirada en los diners americanos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Turbio+Pedro+Moreno+1103+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Pedro Moreno 1103, col. Americana"
+      },
+      {
+        "id": 40,
+        "titulo": "Bebidas Pajarote",
+        "texto": "Bebidas Pajarote. Basado en la herencia familiar de Mónica y Rubén Leyva, rescata la tradición de los ponches artesanales de Etzatlán.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bebidas+Pajarote+Garibaldi+1159+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Garibaldi 1159, col. Santa Teresita"
+      },
+      {
+        "id": 41,
+        "titulo": "Los Abarrotes Marsella",
+        "texto": "Los Abarrotes Marsella. Comercio de barrio con selección curada de vinos, quesos y cervezas, famoso por sus lonches.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Los+Abarrotes+Marsella+Marsella+226+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Marsella 226, col. Americana"
+      },
+      {
+        "id": 42,
+        "titulo": "Tejuino Don Marcelino",
+        "texto": "Tejuino Don Marcelino. Tradición familiar desde 1955 en la elaboración de tejuino, bebida fermentada de maíz.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tejuino+Don+Marcelino+Joaquín+Angulo+819+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Joaquín Angulo 819, col. Artesanos (Mercado IV Centenario)"
+      },
+      {
+        "id": 43,
+        "titulo": "El Príncipe Heredero",
+        "texto": "El Príncipe Heredero. Una de las torterías más antiguas de la ciudad, con más de 67 años de historia en la preparación de tortas ahogadas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Príncipe+Heredero+Epigmenio+González+200+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Epigmenio González 200, col. Mexicaltzingo"
+      },
+      {
+        "id": 44,
+        "titulo": "Súper Tacos Rafa",
+        "texto": "Súper Tacos Rafa. Referente de la taquería nocturna desde 1986, famosos por sus tacos de cabeza y sus cuatro salsas especiales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Súper+Tacos+Rafa+Severo+Díaz+esq+Justo+Sierra+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Severo Díaz esq. Justo Sierra, col. Ladrón de Guevara"
+      },
+      {
+        "id": 45,
+        "titulo": "Kamilos 333",
+        "texto": "Kamilos 333. Institución desde 1975 especializada en carne en su jugo, acompañada de frijoles caseros y jericalla.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Kamilos+333+José+Clemente+Orozco+333+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "José Clemente Orozco 333, col. Santa Teresita"
+      },
+      {
+        "id": 46,
+        "titulo": "Fonda Doña Gabina Escolástica",
+        "texto": "Fonda Doña Gabina Escolástica. Cenaduría tradicional fundada en 1991, reconocida por su pozole de cabeza de cerdo y adobo de chilacate.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Fonda+Doña+Gabina+Escolástica+Javier+Mina+237+Zapopan",
+        "etiqueta": "comida",
+        "direccion": "Javier Mina 237, Centro, Zapopan"
+      },
+      {
+        "id": 47,
+        "titulo": "Birriería La Victoria",
+        "texto": "Birriería La Victoria. Tradición desde 1948 en Santa Tere, especializada en birria de cabra, res y ternera.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Birriería+La+Victoria+Manuel+Acuña+1511+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Manuel Acuña 1511, col. Villaseñor"
+      },
+      {
+        "id": 48,
+        "titulo": "Panadería Santa Teresita",
+        "texto": "Panadería Santa Teresita. Panadería con tradición desde 1980, famosa por sus pays de queso y su legendario pan de elote.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Panadería+Santa+Teresita+Juan+Álvarez+1558+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Juan Álvarez 1558, col. Villaseñor"
+      },
+      {
+        "id": 49,
+        "titulo": "Yunaites Menjurjes Pueblerinos",
+        "texto": "Yunaites Menjurjes Pueblerinos. Proyecto del chef Fabián Delgado en el Mercado IV Centenario que sirve joyas culinarias de la sierra Jalmich.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Yunaites+Menjurjes+Pueblerinos+Garibaldi+824+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Garibaldi 824, col. Jesús"
+      },
+      {
+        "id": 50,
+        "titulo": "Museo Cabañas",
+        "texto": "Museo Cabañas. Patrimonio Cultural de la Humanidad por la UNESCO, alberga 53 murales de José Clemente Orozco.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Cabañas+Cabañas+8+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Cabañas 8, col. San Juan de Dios"
+      },
+      {
+        "id": 51,
+        "titulo": "Museo de Arte de Zapopan (MAZ)",
+        "texto": "Museo de Arte de Zapopan (MAZ). Espacio dedicado al arte contemporáneo con exposiciones temporales de relevancia internacional.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+de+Arte+de+Zapopan+MAZ+Zapopan",
+        "etiqueta": "cultura",
+        "direccion": "Prolongación 20 de noviembre 166, Centro, Zapopan"
+      },
+      {
+        "id": 52,
+        "titulo": "Estación MAZ",
+        "texto": "Estación MAZ. Extensión cultural del MAZ en Zapopan diseñada para ampliar la oferta y accesibilidad artística.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Estación+MAZ+Hidalgo+352+Zapopan",
+        "etiqueta": "cultura",
+        "direccion": "Hidalgo 352, Centro, Zapopan"
+      },
+      {
+        "id": 53,
+        "titulo": "Planetario Lunario",
+        "texto": "Planetario Lunario. Espacio didáctico con 23 exhibiciones interactivas para aprender sobre el cosmos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Planetario+Lunario+Carlos+Nereida+792+Guadalajara",
+        "etiqueta": "entretenimiento",
+        "direccion": "Carlos Nereida 792, col. Miraflores"
+      },
+      {
+        "id": 54,
+        "titulo": "Ex Convento del Carmen",
+        "texto": "Ex Convento del Carmen. Centro cultural multidisciplinario que integra talleres, literatura y conciertos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ex+Convento+del+Carmen+Juárez+638+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Juárez 638, Centro, Guadalajara"
+      },
+      {
+        "id": 55,
+        "titulo": "Museo de las Artes (MUSA)",
+        "texto": "Museo de las Artes (MUSA). Cuenta con murales de José Clemente Orozco y exposiciones temporales de gran calidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+de+las+Artes+MUSA+Juárez+975+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Juárez 975, Centro, Guadalajara"
+      },
+      {
+        "id": 56,
+        "titulo": "Museo Jalisco Paseo Interactivo (JAPI)",
+        "texto": "Museo Jalisco Paseo Interactivo (JAPI). Espacio educativo con 90 exhibiciones temáticas diseñado para experiencias interactivas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Jalisco+Paseo+Interactivo+JAPI+Guillermo+González+Camarena+750+Zapopan",
+        "etiqueta": "entretenimiento",
+        "direccion": "Guillermo González Camarena 750, Zapopan"
+      },
+      {
+        "id": 57,
+        "titulo": "Cineteca FICG",
+        "texto": "Cineteca FICG. Sede del Festival Internacional de Cine de Guadalajara, parte del importante Centro Cultural Universitario.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cineteca+FICG+Manuel+Gómez+Morín+1695+Zapopan",
+        "etiqueta": "entretenimiento",
+        "direccion": "Manuel Gómez Morín 1695, Zapopan"
+      },
+      {
+        "id": 58,
+        "titulo": "Tequila Lab",
+        "texto": "Tequila Lab. Museo dedicado a la historia y legado del tequila a través de exposiciones interactivas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tequila+Lab+Av+Central+Guillermo+González+Camarena+750+Zapopan",
+        "etiqueta": "cultura",
+        "direccion": "Av. Central Guillermo González Camarena 750, Zapopan"
+      },
+      {
+        "id": 59,
+        "titulo": "Mercado de Santa Tere",
+        "texto": "Mercado de Santa Tere. Construido en 1951, es famoso por su tianguis dominical y su oferta gastronómica, especialmente el biónico.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mercado+de+Santa+Tere+Andrés+Terán+523+Guadalajara",
+        "etiqueta": "comida",
+        "direccion": "Andrés Terán 523, col. Santa Teresita"
+      },
+      {
+        "id": 60,
+        "titulo": "Mercado Corona",
+        "texto": "Mercado Corona. Emblemático mercado inaugurado en 1891, ideal para comprar insumos, flores, hierbas medicinales y artículos esotéricos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mercado+Corona+Av+Miguel+Hidalgo+y+Costilla+469+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Av. Miguel Hidalgo y Costilla 469, Centro"
+      },
+      {
+        "id": 61,
+        "titulo": "Casa Cristo",
+        "texto": "Casa Cristo. Obra temprana del arquitecto Luis Barragán (1927-1929) que destaca por su mezcla de estilos españoles y mexicanos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Cristo+Pedro+Moreno+1612+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Pedro Moreno 1612, col. Americana"
+      },
+      {
+        "id": 62,
+        "titulo": "Acuario Michin",
+        "texto": "Acuario Michin. Acuario interactivo enfocado en la educación y la conservación de especies marinas y terrestres.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Acuario+Michin+Mariano+de+la+Bárcena+990+Guadalajara",
+        "etiqueta": "entretenimiento",
+        "direccion": "Mariano de la Bárcena 990, Centro"
+      },
+      {
+        "id": 63,
+        "titulo": "Museo Panteón de Belén",
+        "texto": "Museo Panteón de Belén. Histórico cementerio famoso por su arquitectura, leyendas locales y sus recorridos nocturnos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Panteón+de+Belén+Belén+684+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Belén 684, El Retiro"
+      },
+      {
+        "id": 64,
+        "titulo": "Teatro Degollado",
+        "texto": "Teatro Degollado. Histórico recinto de estilo neoclásico, sede de importantes eventos culturales y musicales en la ciudad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Teatro+Degollado+Belén+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Belén s/n, Centro"
+      },
+      {
+        "id": 65,
+        "titulo": "Catedral de Guadalajara",
+        "texto": "Catedral de Guadalajara. Principal templo religioso de la ciudad, reconocido internacionalmente por sus emblemáticas torres neogóticas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Catedral+de+Guadalajara+Av+Alcalde+10+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Av. Alcalde 10, Centro"
+      },
+      {
+        "id": 66,
+        "titulo": "Arcos del Milenio",
+        "texto": "Arcos del Milenio. Escultura monumental diseñada por Sebastián que simboliza la modernidad y la llegada del nuevo milenio.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Arcos+del+Milenio+Av+Mariano+Otero+y+Av+Lázaro+Cárdenas+Guadalajara",
+        "etiqueta": "cultura",
+        "direccion": "Av. Mariano Otero y Av. Lázaro Cárdenas, Jardines del Bosque"
+      },
+      {
+        "id": 67,
+        "titulo": "Casa de las Artesanías de Jalisco",
+        "texto": "Casa de las Artesanías de Jalisco. Espacio dedicado a la promoción, exhibición y venta de artesanías tradicionales mediante talleres y exposiciones.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+de+las+Artesanías+de+Jalisco+Calzada+de+los+Ángeles+Guadalajara",
+        "etiqueta": "compras",
+        "direccion": "Calzada de los Ángeles, González Gallo"
+      }
+    ]
+
+    var puntos = [
+      {
+        "id": 9,
+        "coord": [1466, 172]
+      },
+      {
+        "id": 10,
+        "coord": [1487, 210]
+      },
+      {
+        "id": 29,
+        "coord": [1361, 166]
+      },
+      {
+        "id": 7,
+        "coord": [1305, 201]
+      },
+      {
+        "id": 24,
+        "coord": [1384, 295]
+      },
+      {
+        "id": 44,
+        "coord": [1439, 290]
+      },
+      {
+        "id": 4,
+        "coord": [1334, 371]
+      },
+      {
+        "id": 66,
+        "coord": [1156, 262]
+      },
+      {
+        "id": 19,
+        "coord": [1161, 406]
+      },
+      {
+        "id": 1,
+        "coord": [1300, 401]
+      },
+      {
+        "id": 34,
+        "coord": [1285, 407]
+      },
+      {
+        "id": 8,
+        "coord": [1283, 394]
+      },
+      {
+        "id": 5,
+        "coord": [1330, 447]
+      },
+      {
+        "id": 11,
+        "coord": [1313, 443]
+      },
+      {
+        "id": 3,
+        "coord": [1290, 513]
+      },
+      {
+        "id": 12,
+        "coord": [1303, 516]
+      },
+      {
+        "id": 21,
+        "coord": [1275, 538]
+      },
+      {
+        "id": 6,
+        "coord": [1262, 569]
+      },
+      {
+        "id": 41,
+        "coord": [1314, 547]
+      },
+      {
+        "id": 37,
+        "coord": [1355, 544]
+      },
+      {
+        "id": 61,
+        "coord": [1390, 546]
+      },
+      {
+        "id": 16,
+        "coord": [1404, 545]
+      },
+      {
+        "id": 14,
+        "coord": [1415, 544]
+      },
+      {
+        "id": 23,
+        "coord": [1392, 628]
+      },
+      {
+        "id": 17,
+        "coord": [1332, 639]
+      },
+      {
+        "id": 33,
+        "coord": [1372, 682]
+      },
+      {
+        "id": 22,
+        "coord": [1467, 532]
+      },
+      {
+        "id": 13,
+        "coord": [1453, 593]
+      },
+      {
+        "id": 18,
+        "coord": [1412, 652]
+      },
+      {
+        "id": 15,
+        "coord": [1401, 695]
+      },
+      {
+        "id": 20,
+        "coord": [1420, 706]
+      },
+      {
+        "id": 25,
+        "coord": [1438, 730]
+      },
+      {
+        "id": 28,
+        "coord": [1402, 719]
+      },
+      {
+        "id": 39,
+        "coord": [1388, 729]
+      },
+      {
+        "id": 34,
+        "coord": [1377, 726]
+      },
+      {
+        "id": 35,
+        "coord": [1329, 735]
+      },
+      {
+        "id": 55,
+        "coord": [1364, 775]
+      },
+      {
+        "id": 27,
+        "coord": [1512, 601]
+      },
+      {
+        "id": 45,
+        "coord": [1513, 632]
+      },
+      {
+        "id": 47,
+        "coord": [1566, 590]
+      },
+      {
+        "id": 49,
+        "coord": [1574, 598]
+      },
+      {
+        "id": 48,
+        "coord": [1589, 592]
+      },
+      {
+        "id": 26,
+        "coord": [1608, 638]
+      },
+      {
+        "id": 2,
+        "coord": [1543, 656]
+      },
+      {
+        "id": 40,
+        "coord": [1501, 694]
+      },
+      {
+        "id": 31,
+        "coord": [1285, 835]
+      },
+      {
+        "id": 54,
+        "coord": [1377, 888]
+      },
+      {
+        "id": 49,
+        "coord": [1510, 819]
+      },
+      {
+        "id": 42,
+        "coord": [1522, 824]
+      },
+      {
+        "id": 60,
+        "coord": [1439, 962]
+      },
+      {
+        "id": 65,
+        "coord": [1415, 1011]
+      },
+      {
+        "id": 64,
+        "coord": [1418, 1059]
+      },
+      {
+        "id": 50,
+        "coord": [1410, 1184]
+      },
+      {
+        "id": 43,
+        "coord": [1193, 966]
+      },
+      {
+        "id": 67,
+        "coord": [1127, 971]
+      },
+      {
+        "id": 57,
+        "coord": [1024, 560]
+      },
+      {
+        "id": 52,
+        "coord": [806, 412]
+      },
+      {
+        "id": 30,
+        "coord": [765, 418]
+      },
+      {
+        "id": 46,
+        "coord": [791, 342]
+      },
+      {
+        "id": 51,
+        "coord": [797, 315]
+      },
+      {
+        "id": 56,
+        "coord": [503, 186]
+      },
+      {
+        "id": 58,
+        "coord": [420, 151]
+      },
+      {
+        "id": 29,
+        "coord": [388, 175]
+      },
+      {
+        "id": 38,
+        "coord": [332, 523]
+      },
+      {
+        "id": 32,
+        "coord": [146, 211]
+      },
+      {
+        "id": 63,
+        "coord": [92, 968]
+      },
+      {
+        "id": 62,
+        "coord": [323, 874]
+      },
+      {
+        "id": 53,
+        "coord": [381, 1073]
+      }
+    ]
+
+    var puntoBanco = [
+      [1577, 979],
+      [1381, 1105],
+      [1335, 1021],
+      [1533, 608]
+    ]
+
+    var puntoWifi = [
+      [1475, 1107],
+      [1371, 995],
+      [1356, 984],
+      [1229, 585],
+    ]
+
+    var typeColors = {
+      comida: '#ff6b6b',
+      cultura: '#3b82f6',
+      compras: '#10b981',
+      entretenimiento: '#a855f7',
+      bancos: '#138D75',
+      wifi: '#E74C3C',
+      otro: '#888888'
+    }
+
+    function buildPopupContent(titulo = null, texto = null, url = null, direccion= null) {
+      var html = `<div class="popup-title">${titulo}</div>`;
+      var descripcion = texto;
+
+      if (descripcion) html += `<div class="popup-description">${descripcion}</div>`;
+
+      if (direccion) {
+        html += `<hr style="border:none;border-top:1px solid #cacaca; margin: 10px 0;">`;
+        html += `<div class="popup-address">📍 ${direccion}</div>`;
+      }
+
+      if (url) {
+        html += `<a class="popup-maps-link" href="${url}" target="_blank" rel="noopener noreferrer">📌 Abrir en Google Maps</a>`;
+      }
+      return html;
+    }
+
+    var allCircles = [];
+
+    puntos.forEach(function (punto) {
+      var infoLugar = datosLugares.find(function (lugar) {
+        return lugar.id === punto.id;
+      });
+
+      var titulo = infoLugar ? infoLugar.titulo : `Punto ${punto.id}`;
+      var texto = infoLugar ? infoLugar.texto : 'Sin descripción.';
+      var url = infoLugar ? infoLugar.url : null;
+      var tipoEtiqueta = infoLugar ? infoLugar.etiqueta : 'otro';
+      var direccion = infoLugar ? infoLugar.direccion : null;
+      var textoPopup = buildPopupContent(titulo, texto, url, direccion);
+      var circle = L.circle(punto.coord, { weight: 1 }).bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: tipoEtiqueta,
+        coord: punto.coord
+      });
+    });
+
+    puntoBanco.forEach(function (coord, index) {
+      var textoPopup = buildPopupContent('Banco Azteca');
+      var circle = L.circle(coord, { weight: 1 })
+        .bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: 'bancos',
+        coord: coord
+      });
+    });
+
+    puntoWifi.forEach(function (coord, index) {
+      var textoPopup = buildPopupContent('Wifi TotalPlay');
+      var circle = L.circle(coord, { weight: 1 }).bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: 'wifi',
+        coord: coord
+      });
+    });
+
+    var filterButtons = document.querySelectorAll('.filter-btn');
+
+    function resetCircleStyles() {
+      allCircles.forEach(function (item) {
+        var color = typeColors[item.type] || typeColors['otro'];
+        item.circle.setStyle({
+          fillColor: 'transparent',color: 'transparent',weight: 1,radius: 12,fillOpacity: 0.8
+        });
+        if (!map.hasLayer(item.circle)) {
+          item.circle.addTo(map);
+        }
+      });
+      map.fitBounds(bounds);
+    }
+
+    function highlightFiltered(filterType) {
+      var matchingCoords = [];
+      var cColor = typeColors[filterType] || '#f5a623';
+
+      allCircles.forEach(function (item) {
+        if (item.type === filterType) {
+
+          item.circle.setStyle({
+            fillColor: cColor,  color: cColor,  weight: 2,  radius: 16,  fillOpacity: 0.9
+          });
+          if (!map.hasLayer(item.circle)) {
+            item.circle.addTo(map);
+          }
+          matchingCoords.push(item.coord);
+        } else {
+
+          if (map.hasLayer(item.circle)) {
+            map.removeLayer(item.circle);
+          }
+        }
+      });
+
+      if (matchingCoords.length > 0) {
+        var filterBounds = L.latLngBounds(matchingCoords);
+        map.fitBounds(filterBounds, { padding: [60, 60], maxZoom: 1 });
+      }
+    }
+
+    resetCircleStyles();
+
+    filterButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+
+        filterButtons.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+
+        var activeFilter = btn.getAttribute('data-type');
+
+        if (activeFilter === 'all') {
+          resetCircleStyles();
+        } else {
+          highlightFiltered(activeFilter);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

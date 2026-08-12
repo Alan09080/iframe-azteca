@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa CDMX</title>
+  <link rel="icon" href="https://www.tvazteca.com/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="https://www.tvazteca.com/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      padding: 0;
+      width: 100%;
+    }
+
+    body {
+      background: #ffffff;
+      color: #222222;
+      font-family: Lato, Arial, Helvetica, sans-serif;
+      overflow-x: hidden;
+      padding: 24px 0 40px;
+    }
+  </style>
+</head>
+<body>
+<style>
+  #map {
+    height: 102px;
+  }
+  .sponsors {
+      display: block;
+      margin: 0 auto 40px auto;
+      max-width: 1320px;
+      width: 85%;
+  }
+  .mapinfo {
+    background-color: #c4d5bf;
+    border-radius: 20px;
+    font-size: 14px;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 1320px;
+    width: 90%;
+  }
+  .mapinfo .mapinfo {
+    width: 100%;
+  }
+  .mapinfo_icon {
+    display: block;
+    height: 120px;
+    max-width: 100%;
+    width: auto;
+  }
+  .mapinfo_column {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 20px;
+  }
+  .mapinfo_column p {
+    margin: 0;
+  }
+  .mapinfo_column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .mapinfo_column li {
+    list-style-position: outside;
+    list-style-type: circle;
+    margin-left: 15px;
+  }
+  .mapinfo_column-title,
+  .mapinfo_column-subtitle  {
+    font-family: Lato, sans-serif;
+    color: #00879c;
+  }
+  .mapinfo_column-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 15px;
+    margin-bottom: 0;
+  }
+  .mapinfo_column-subtitle {
+    margin-top: 15px;
+    margin-bottom: 0;
+  }
+  .viewmap {
+    align-items: center;
+    background: #c03;
+    border-radius: 4px;
+    box-sizing: border-box;
+    color: #fff;
+    display: inline-block;
+    font-family: Lato, sans-serif;
+    font-weight: 700;
+    justify-content: center;
+    text-decoration: none;
+    margin: 25px 0;
+    padding: 10px 16px;
+  }
+  .viewmap:hover {
+    background: #75001d;
+    color: #fff;
+    text-decoration: none;
+  }
+  @media all and (min-width:768px) {
+    #map {
+      height: 144px;
+    }
+    .mapinfo {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: stretch;
+      align-content: stretch;
+    }
+    .mapinfo_column.width-33 {
+      width: 33%;
+    }
+    .mapinfo_column.width-50 {
+      width: 50%;
+    }
+    .mapinfo_column.width-67 {
+      width: 67%;
+    }
+  }
+  @media all and (max-width:767px) {
+    #mapcontainer {
+        height: 120vw !important;
+    }
+  }
+</style>
+<div style="width:90%;max-width:1320px;margin:0 auto;"><a href="mundial-cdmx.html" class="viewmap" target="_blank" rel="noopener noreferrer">VER MAPA</a></div>
+<div class="mapinfo">
+  <div class="mapinfo_column width-33">
+    <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/S74MDZ2LKBEK5OLQA67OTEAFTA.png" width="500" height="309" />
+    <p class="mapinfo_column-title">FRUTAS Y VERDURAS DE TEMPORADA</p>
+    <p class="mapinfo_column-subtitle">Enero - Febrero</p>
+    <p>Guayaba · Mandarina · Naranja · Fresa · Espinaca · Brócoli</p>
+    <p class="mapinfo_column-subtitle">Marzo - Abril</p>
+    <p>Mango · Piña · Melón · Calabaza · Pepino · Nopal</p>
+    <p class="mapinfo_column-subtitle">Mayo - Junio</p>
+    <p>Mango · Mamey · Sandía · Durazno · Elote · Jitomate · Verdolagas</p>
+    <p class="mapinfo_column-subtitle">Julio - Agosto</p>
+    <p>Tuna · Uva · Pera · Elote · Nopales · Huitlacoche</p>
+    <p class="mapinfo_column-subtitle">Septiembre - Octubre</p>
+    <p>Granada · Manzana · Guayaba · Chile poblano · Calabaza · Camote</p>
+    <p class="mapinfo_column-subtitle">Noviembre - Diciembre</p>
+    <p>Mandarina · Tejocote · Naranja · Romeritos · Coliflor · Jícama</p>
+  </div>
+  <div class="mapinfo_column width-33">
+    <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/BB7PA4IKRBAKLP46IK7HUQYCXI.png" width="500" height="262" />
+    <p class="mapinfo_column-title">BEBIDAS Y COMIDAS (SNACKS)</p>
+    <p class="mapinfo_column-subtitle">Comida (a veces callejera)</p>
+    <ul>
+      <li>Tacos (al pastor, suadero, bistec, campechanos, cabeza)</li>
+      <li>Elotes preparados con mayonesa, queso blanco, limón y chile. Puedes elegir entre picante y no picante.</li>
+      <li>Esquites (grano de elote preparado, se sirve en vaso)</li>
+      <li>Dorilocos (bolsa de Doritos preparada con fruta, limón, sal, chamoy y chile en polvo)</li>
+      <li>Guajolota (torta de tamal)</li>
+      <li>Nieves de fruta de temporada (mamey, mango, ciruela, etc)</li>
+      <li>Paletas de hielo de fruta de temporada</li>
+      <li>Atole (guayaba, arroz, fresa)</li>
+      <li>Tortas (milanesa, jamón, pierna, suadero, carnitas, pastor, etc)</li>
+      <li>Algodón de azúcar</li>
+      <li>Chicharrón preparado (col, jitomate, aguacate, cueritos de cerdo, crema y salsa picante)</li>
+    </ul>
+  </div>
+  <div class="mapinfo_column width-33">
+      <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/3RQCVWFFNNBCPEKLBHC2L5X2XM.png" width="500" height="559" />
+      <p class="mapinfo_column-title">&nbsp;</p>
+      <p class="mapinfo_column-subtitle">Bebidas:</p>
+      <ul>
+        <li>Margaritas o mezcalitas con sabores a frutas</li>
+        <li>Micheladas de sabor (fresa, mango, naranja, frutos rojos)</li>
+        <li>Refrescos preparados (con sal, limón y chile al gusto)</li>
+        <li>Agua de frutas de la heladería La Michoacana</li>
+        <li>Azulitos (vodka, curaçao, boost, miguelito azul, gomitas azules)</li>
+        <li>Agua de horchata</li>
+        <li>Agua de jamaica</li>
+        <li>Chocolate caliente</li>
+        <li>Café de olla</li>
+        <li>Tepache (bebida fermentada)</li>
+      </ul>
+  </div>
+  <div class="mapinfo_column width-33">
+    <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/BDO5ZSJR7ZCIBOVPRKBWUJWP7E.png" width="500" height="329" />
+    <p class="mapinfo_column-title">MODISMOS</p>
+    <ul>
+      <li><b>¡Cámara!:</b> sí / Afirmar algo / Despedirse</li>
+      <li><b>Simón:</b> es una forma de decir que sí</li>
+      <li><b>¡Nel!:</b> es una forma de decir que no</li>
+      <li><b>¿Con tocho?:</b> pregunta que se hace para saber si tus alimentos llevarán todos los ingredientes o aditamentos</li>
+      <li><b>Garnachas:</b> término genérico para antojitos callejeros de maíz fritos como quesadillas, gorditas, tlacoyos, sopes, flautas, tostadas, huarache</li>
+      <li><b>¿Con todo?:</b> tacos (cebolla, cilantro y salsa), elotes (mayonesa, queso y chile), hot dogs: (jitomate, cebolla, chiles, catsup y mostaza), garnachas: queso, crema, lechuga y salsa</li>
+      <li><b>Chela:</b> cerveza</li>
+      <li><b>Chesco:</b> refresco</li>
+      <li><b>¡Aguas!:</b> que tengas cuidado</li>
+      <li><b>¡Wey!:</b> es como decir chico o persona, de forma coloquial</li>
+      <li><b>Don:</b> una forma de referirse a un señor (ejemplo: Don Luis)</li>
+      <li><b>Doña:</b> una forma de referirse a una señora(ejemplo: Doña Luisa)</li>
+      <li><b>Torta:</b> pan relleno de jamón, queso u otros alimentos</li>
+    </ul>
+  </div>
+  <div class="mapinfo_column width-67">
+    <img class="mapinfo_icon" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/2N74SI5OVZHYBHLFBB265DA2BY.png" width="500" height="210" />
+    <p class="mapinfo_column-title">¿QUÉ COMPRAR?</p>
+    <div class="mapinfo">
+      <div class="mapinfo_column width-50">
+        <p class="mapinfo_column-subtitle">Artesanías</p>
+        <ul>
+          <li>Máscaras de luchadores</li>
+          <li>Cartonería (piñatas, artículos de decoración)</li>
+          <li>Barro negro (utensilios de cocina, artículos de decoración, ceniceros, vaciabolsillos, macetas)</li>
+          <li>Tallados de piedra volcánica (figurillas, platones, vaciabolsillos)</li>
+          <li>Alebrijes</li>
+          <li>Mercancía de charrería (trajes típicos, sombreros y botas)</li>
+          <li>Changuito meón de Chapultepec</li>
+          <li>Juguetes típicos (balero, matraca, maraca, silbato, trompo)</li>
+          <li>Bolsa de mandado de rafia</li>
+        </ul>
+      </div>
+      <div class="mapinfo_column width-50">
+        <p class="mapinfo_column-subtitle">Comida</p>
+        <ul>
+          <li>Chapulines</li>
+          <li>Fruta cristalizada</li>
+          <li>Camotes</li>
+          <li>Merengues</li>
+          <li>Cocadas</li>
+          <li>Gorditas de nata</li>
+          <li>Jamoncillo</li>
+          <li>Puerquito de piloncillo</li>
+          <li>Alegrías de amaranto</li>
+          <li>Borrachitos</li>
+          <li>Alegrías</li>
+          <li>Pepitorias</li>
+          <li>Productos de maíz (pan, tortillas, sopes, tlacoyos)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="map"></div>
+<iframe id="mapcontainer" style="display:block;width:90vw;height:90vw;margin:40px auto;max-width:1320px;max-height:1320px;" src="https://www.revistacentral.com.mx/cdmx.html" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox"></iframe>
+<img class="sponsors" src="https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/WOF7KJNKTNHGPNLMFSLZIOVGUA.png" />
+</body>
+</html>

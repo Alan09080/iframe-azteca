@@ -3,31 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iframe Azteca Embed Hub</title>
+  <title>Páginas embebibles | TV Azteca</title>
+  <link rel="icon" href="https://www.tvazteca.com/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="https://www.tvazteca.com/apple-touch-icon.png">
   <style>
     :root {
-      --bg: #eef1f5;
+      --bg: #f4f5f7;
       --panel: #ffffff;
       --panel-soft: #f8fafc;
-      --ink: #172033;
+      --ink: #202124;
       --muted: #667085;
       --line: #d9dee8;
       --line-strong: #c8cfdb;
       --brand: #c40030;
       --brand-dark: #8f0025;
       --ok: #087f5b;
-      --warn: #b7791f;
       --code: #111827;
-      --shadow: 0 18px 50px rgba(23, 32, 51, 0.08);
+      --shadow: 0 10px 30px rgba(32, 33, 36, 0.06);
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      min-height: 100%;
-    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; }
 
     body {
       background: var(--bg);
@@ -37,16 +33,8 @@
       min-height: 100vh;
     }
 
-    button,
-    input,
-    textarea {
-      font: inherit;
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
+    button, input, textarea { font: inherit; }
+    a { color: inherit; text-decoration: none; }
 
     .app {
       display: grid;
@@ -55,8 +43,9 @@
     }
 
     .sidebar {
-      background: #151b29;
-      color: #e5e7eb;
+      background: #ffffff;
+      border-right: 1px solid var(--line);
+      color: var(--ink);
       display: flex;
       flex-direction: column;
       gap: 24px;
@@ -64,22 +53,26 @@
     }
 
     .brand {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--line);
       padding-bottom: 22px;
     }
 
-    .brand-mark {
+    .brand-logo {
       align-items: center;
-      background: #ffffff;
-      border-radius: 6px;
-      color: var(--brand);
+      background: #f7f8fa;
+      border: 1px solid var(--line);
+      border-radius: 8px;
       display: inline-flex;
-      font-size: 18px;
-      font-weight: 900;
-      height: 38px;
+      height: 42px;
       justify-content: center;
       margin-bottom: 14px;
-      width: 38px;
+      width: 42px;
+    }
+
+    .brand-logo img {
+      display: block;
+      height: 24px;
+      width: 24px;
     }
 
     .brand h1 {
@@ -88,19 +81,14 @@
       margin: 0 0 6px;
     }
 
-    .brand p,
-    .nav-label,
-    .sidebar-note {
-      color: #aab2c0;
+    .brand p, .nav-label, .sidebar-note {
+      color: var(--muted);
       font-size: 13px;
       line-height: 1.45;
       margin: 0;
     }
 
-    .nav {
-      display: grid;
-      gap: 8px;
-    }
+    .nav { display: grid; gap: 8px; }
 
     .nav-label {
       font-size: 11px;
@@ -113,34 +101,20 @@
     .nav a {
       align-items: center;
       border-radius: 6px;
-      color: #d7dce5;
+      color: #46515f;
       display: flex;
       font-size: 14px;
       font-weight: 700;
-      gap: 10px;
       min-height: 38px;
       padding: 0 10px;
     }
 
     .nav a.active {
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
+      background: #f3f5f8;
+      color: var(--ink);
     }
 
-    .nav-dot {
-      background: #7f8aa0;
-      border-radius: 3px;
-      height: 10px;
-      width: 10px;
-    }
-
-    .nav a.active .nav-dot {
-      background: var(--brand);
-    }
-
-    .sidebar-note {
-      margin-top: auto;
-    }
+    .sidebar-note { margin-top: auto; }
 
     .main {
       display: flex;
@@ -150,7 +124,7 @@
 
     .topbar {
       align-items: center;
-      background: rgba(255, 255, 255, 0.82);
+      background: rgba(255, 255, 255, 0.92);
       border-bottom: 1px solid var(--line);
       display: flex;
       gap: 18px;
@@ -162,9 +136,7 @@
       z-index: 10;
     }
 
-    .topbar-title {
-      min-width: 0;
-    }
+    .topbar-title { min-width: 0; }
 
     .eyebrow {
       color: var(--muted);
@@ -269,18 +241,15 @@
       margin: 4px 0 0;
     }
 
-    .table-wrap {
-      overflow-x: auto;
-    }
+    .table-wrap { overflow-x: auto; }
 
     table {
       border-collapse: collapse;
-      min-width: 920px;
+      min-width: 960px;
       width: 100%;
     }
 
-    th,
-    td {
+    th, td {
       border-bottom: 1px solid var(--line);
       padding: 14px 18px;
       text-align: left;
@@ -296,9 +265,7 @@
       text-transform: uppercase;
     }
 
-    tr:last-child td {
-      border-bottom: 0;
-    }
+    tr:last-child td { border-bottom: 0; }
 
     .asset-name {
       align-items: center;
@@ -318,14 +285,12 @@
       font-weight: 900;
       height: 36px;
       justify-content: center;
-      width: 36px;
+      width: 44px;
     }
 
-    .asset-icon.dark {
-      background: #1a1a1a;
-      border-color: #303846;
-      color: #f5a623;
-    }
+    .asset-icon.teal { background: #dceae0; border-color: #bfd3c4; color: #00879c; }
+    .asset-icon.blue { background: #dce9f7; border-color: #bdd2ec; color: #235789; }
+    .asset-icon.dark { background: #1a1a1a; border-color: #303846; color: #f5a623; }
 
     .asset-name strong {
       display: block;
@@ -333,8 +298,7 @@
       line-height: 1.2;
     }
 
-    .asset-name span,
-    .cell-muted {
+    .asset-name span, .cell-muted {
       color: var(--muted);
       display: block;
       font-size: 12px;
@@ -369,7 +333,7 @@
       color: #334155;
       font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
       font-size: 12px;
-      max-width: 320px;
+      max-width: 340px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -398,24 +362,10 @@
       white-space: nowrap;
     }
 
-    .button.primary {
-      background: var(--brand);
-      color: #ffffff;
-    }
-
-    .button.primary:hover {
-      background: var(--brand-dark);
-    }
-
-    .button.secondary {
-      background: #ffffff;
-      border-color: var(--line-strong);
-      color: var(--ink);
-    }
-
-    .button.secondary:hover {
-      background: #f3f5f8;
-    }
+    .button.primary { background: var(--brand); color: #ffffff; }
+    .button.primary:hover { background: var(--brand-dark); }
+    .button.secondary { background: #ffffff; border-color: var(--line-strong); color: var(--ink); }
+    .button.secondary:hover { background: #f3f5f8; }
 
     .button-icon {
       border: 2px solid currentColor;
@@ -540,21 +490,10 @@
     }
 
     @media (max-width: 1040px) {
-      .app {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        display: none;
-      }
-
-      .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .preview-grid {
-        grid-template-columns: 1fr;
-      }
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .preview-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 680px) {
@@ -565,34 +504,13 @@
         padding: 16px;
       }
 
-      .content {
-        padding: 16px;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .section-header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      .domain-pill {
-        width: 100%;
-      }
-
-      .code-row {
-        grid-template-columns: 1fr;
-      }
-
-      .actions {
-        justify-content: flex-start;
-      }
-
-      .button {
-        width: 100%;
-      }
+      .content { padding: 16px; }
+      .stats { grid-template-columns: 1fr; }
+      .section-header { align-items: flex-start; flex-direction: column; }
+      .domain-pill { width: 100%; }
+      .code-row { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+      .button { width: 100%; }
     }
   </style>
 </head>
@@ -600,26 +518,28 @@
   <div class="app">
     <aside class="sidebar" aria-label="Navegación del hub">
       <div class="brand">
-        <div class="brand-mark">IA</div>
-        <h1>Iframe Azteca</h1>
-        <p>Central de páginas publicadas para embeds externos.</p>
+        <div class="brand-logo">
+          <img src="https://www.tvazteca.com/favicon.ico" alt="">
+        </div>
+        <h1>Páginas TV Azteca</h1>
+        <p>Páginas listas para usar en notas, especiales o micrositios.</p>
       </div>
 
       <nav class="nav">
-        <p class="nav-label">Workspace</p>
-        <a class="active" href="#assets"><span class="nav-dot"></span>Activos</a>
-        <a href="#previews"><span class="nav-dot"></span>Previews</a>
-        <a href="#snippets"><span class="nav-dot"></span>Códigos</a>
+        <p class="nav-label">Secciones</p>
+        <a class="active" href="#assets">Páginas</a>
+        <a href="#previews">Vistas previas</a>
+        <a href="#snippets">Códigos</a>
       </nav>
 
-      <p class="sidebar-note">GitHub Pages entrega cada archivo HTML como una página independiente lista para iframe.</p>
+      <p class="sidebar-note">Cada URL se puede pegar directamente como origen de un iframe.</p>
     </aside>
 
     <main class="main">
       <header class="topbar">
         <div class="topbar-title">
-          <p class="eyebrow">Embed CRM</p>
-          <h2>Centro de control de páginas embebibles</h2>
+          <p class="eyebrow">GitHub Pages</p>
+          <h2>Páginas para embeber</h2>
         </div>
         <a class="domain-pill" href="https://iframe.alanortiz.me">iframe.alanortiz.me</a>
       </header>
@@ -627,34 +547,34 @@
       <div class="content">
         <section class="stats" aria-label="Resumen">
           <article class="stat">
-            <p class="stat-label">Activos</p>
+            <p class="stat-label">Páginas</p>
+            <p class="stat-value">6</p>
+            <p class="stat-meta">listas para iframe</p>
+          </article>
+          <article class="stat">
+            <p class="stat-label">Ciudades</p>
+            <p class="stat-value">3</p>
+            <p class="stat-meta">CDMX, GDL y MTY</p>
+          </article>
+          <article class="stat">
+            <p class="stat-label">Tipos</p>
             <p class="stat-value">2</p>
-            <p class="stat-meta">HTML publicados</p>
-          </article>
-          <article class="stat">
-            <p class="stat-label">Estado</p>
-            <p class="stat-value">Live</p>
-            <p class="stat-meta">GitHub Pages</p>
-          </article>
-          <article class="stat">
-            <p class="stat-label">Dominio</p>
-            <p class="stat-value">CNAME</p>
-            <p class="stat-meta">iframe.alanortiz.me</p>
+            <p class="stat-meta">Mapa y Mundial</p>
           </article>
           <article class="stat">
             <p class="stat-label">Formato</p>
             <p class="stat-value">iframe</p>
-            <p class="stat-meta">Responsive width</p>
+            <p class="stat-meta">ancho 100%</p>
           </article>
         </section>
 
         <section class="section" id="assets">
           <div class="section-header">
             <div>
-              <h3>Inventario de embeds</h3>
-              <p>URLs públicas y acciones rápidas para cada página alojada.</p>
+              <h3>Páginas disponibles</h3>
+              <p>Abre, revisa o copia el código de cada archivo publicado.</p>
             </div>
-            <span class="status-chip">Operativo</span>
+            <span class="status-chip">Listo</span>
           </div>
 
           <div class="table-wrap">
@@ -672,7 +592,30 @@
                 <tr>
                   <td>
                     <div class="asset-name">
-                      <span class="asset-icon">GDL</span>
+                      <span class="asset-icon teal">CDMX</span>
+                      <span>
+                        <strong>Mapa CDMX</strong>
+                        <span>mapa-cdmx.html</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="url-cell">https://iframe.alanortiz.me/mapa-cdmx.html</td>
+                  <td>
+                    <strong>900 px</strong>
+                    <span class="cell-muted">Guía local + mapa externo</span>
+                  </td>
+                  <td><span class="status-chip">Listo</span></td>
+                  <td>
+                    <div class="actions">
+                      <button class="button secondary" type="button" data-copy-target="mapa-cdmx-code"><span class="button-icon copy"></span>Copiar</button>
+                      <a class="button primary" href="mapa-cdmx.html" target="_blank" rel="noopener noreferrer"><span class="button-icon open"></span>Abrir</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="asset-name">
+                      <span class="asset-icon gold">GDL</span>
                       <span>
                         <strong>Mapa GDL</strong>
                         <span>mapa-gdl.html</span>
@@ -682,13 +625,82 @@
                   <td class="url-cell">https://iframe.alanortiz.me/mapa-gdl.html</td>
                   <td>
                     <strong>900 px</strong>
-                    <span class="cell-muted">Contenido + mapa externo</span>
+                    <span class="cell-muted">Guía local + mapa externo</span>
                   </td>
-                  <td><span class="status-chip">Publicado</span></td>
+                  <td><span class="status-chip">Listo</span></td>
                   <td>
                     <div class="actions">
-                      <button class="button secondary" type="button" data-copy-target="gdl-code"><span class="button-icon copy"></span>Copiar</button>
-                      <a class="button primary" href="mapa-gdl.html"><span class="button-icon open"></span>Abrir</a>
+                      <button class="button secondary" type="button" data-copy-target="mapa-gdl-code"><span class="button-icon copy"></span>Copiar</button>
+                      <a class="button primary" href="mapa-gdl.html" target="_blank" rel="noopener noreferrer"><span class="button-icon open"></span>Abrir</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="asset-name">
+                      <span class="asset-icon blue">MTY</span>
+                      <span>
+                        <strong>Mapa MTY</strong>
+                        <span>mapa-mty.html</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="url-cell">https://iframe.alanortiz.me/mapa-mty.html</td>
+                  <td>
+                    <strong>900 px</strong>
+                    <span class="cell-muted">Guía local + mapa externo</span>
+                  </td>
+                  <td><span class="status-chip">Listo</span></td>
+                  <td>
+                    <div class="actions">
+                      <button class="button secondary" type="button" data-copy-target="mapa-mty-code"><span class="button-icon copy"></span>Copiar</button>
+                      <a class="button primary" href="mapa-mty.html" target="_blank" rel="noopener noreferrer"><span class="button-icon open"></span>Abrir</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="asset-name">
+                      <span class="asset-icon dark">CDMX</span>
+                      <span>
+                        <strong>Mundial CDMX</strong>
+                        <span>mundial-cdmx.html</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="url-cell">https://iframe.alanortiz.me/mundial-cdmx.html</td>
+                  <td>
+                    <strong>720 px</strong>
+                    <span class="cell-muted">Mapa interactivo fullscreen</span>
+                  </td>
+                  <td><span class="status-chip">Listo</span></td>
+                  <td>
+                    <div class="actions">
+                      <button class="button secondary" type="button" data-copy-target="mundial-cdmx-code"><span class="button-icon copy"></span>Copiar</button>
+                      <a class="button primary" href="mundial-cdmx.html" target="_blank" rel="noopener noreferrer"><span class="button-icon open"></span>Abrir</a>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="asset-name">
+                      <span class="asset-icon dark">GDL</span>
+                      <span>
+                        <strong>Mundial GDL</strong>
+                        <span>mundial-gdl.html</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="url-cell">https://iframe.alanortiz.me/mundial-gdl.html</td>
+                  <td>
+                    <strong>720 px</strong>
+                    <span class="cell-muted">Mapa interactivo fullscreen</span>
+                  </td>
+                  <td><span class="status-chip">Listo</span></td>
+                  <td>
+                    <div class="actions">
+                      <button class="button secondary" type="button" data-copy-target="mundial-gdl-code"><span class="button-icon copy"></span>Copiar</button>
+                      <a class="button primary" href="mundial-gdl.html" target="_blank" rel="noopener noreferrer"><span class="button-icon open"></span>Abrir</a>
                     </div>
                   </td>
                 </tr>
@@ -707,11 +719,11 @@
                     <strong>720 px</strong>
                     <span class="cell-muted">Mapa interactivo fullscreen</span>
                   </td>
-                  <td><span class="status-chip">Publicado</span></td>
+                  <td><span class="status-chip">Listo</span></td>
                   <td>
                     <div class="actions">
-                      <button class="button secondary" type="button" data-copy-target="mty-code"><span class="button-icon copy"></span>Copiar</button>
-                      <a class="button primary" href="mundial-mty.html"><span class="button-icon open"></span>Abrir</a>
+                      <button class="button secondary" type="button" data-copy-target="mundial-mty-code"><span class="button-icon copy"></span>Copiar</button>
+                      <a class="button primary" href="mundial-mty.html" target="_blank" rel="noopener noreferrer"><span class="button-icon open"></span>Abrir</a>
                     </div>
                   </td>
                 </tr>
@@ -723,17 +735,27 @@
         <section class="section" id="previews">
           <div class="section-header">
             <div>
-              <h3>Previews</h3>
-              <p>Vista interna reducida de las páginas que se van a embeber.</p>
+              <h3>Vistas previas</h3>
+              <p>Revisión rápida de cómo carga cada página.</p>
             </div>
-            <span class="status-chip">2 disponibles</span>
+            <span class="status-chip">6 páginas</span>
           </div>
 
           <div class="preview-grid">
             <article class="preview">
               <div class="preview-bar">
+                <span class="preview-title">Mapa CDMX</span>
+                <a href="mapa-cdmx.html" class="button secondary" target="_blank" rel="noopener noreferrer">Abrir página</a>
+              </div>
+              <div class="preview-frame">
+                <iframe src="mapa-cdmx.html" loading="lazy" title="Preview Mapa CDMX"></iframe>
+              </div>
+            </article>
+
+            <article class="preview">
+              <div class="preview-bar">
                 <span class="preview-title">Mapa GDL</span>
-                <a href="mapa-gdl.html" class="button secondary">Abrir página</a>
+                <a href="mapa-gdl.html" class="button secondary" target="_blank" rel="noopener noreferrer">Abrir página</a>
               </div>
               <div class="preview-frame">
                 <iframe src="mapa-gdl.html" loading="lazy" title="Preview Mapa GDL"></iframe>
@@ -742,8 +764,38 @@
 
             <article class="preview">
               <div class="preview-bar">
+                <span class="preview-title">Mapa MTY</span>
+                <a href="mapa-mty.html" class="button secondary" target="_blank" rel="noopener noreferrer">Abrir página</a>
+              </div>
+              <div class="preview-frame">
+                <iframe src="mapa-mty.html" loading="lazy" title="Preview Mapa MTY"></iframe>
+              </div>
+            </article>
+
+            <article class="preview">
+              <div class="preview-bar">
+                <span class="preview-title">Mundial CDMX</span>
+                <a href="mundial-cdmx.html" class="button secondary" target="_blank" rel="noopener noreferrer">Abrir página</a>
+              </div>
+              <div class="preview-frame">
+                <iframe src="mundial-cdmx.html" loading="lazy" title="Preview Mundial CDMX"></iframe>
+              </div>
+            </article>
+
+            <article class="preview">
+              <div class="preview-bar">
+                <span class="preview-title">Mundial GDL</span>
+                <a href="mundial-gdl.html" class="button secondary" target="_blank" rel="noopener noreferrer">Abrir página</a>
+              </div>
+              <div class="preview-frame">
+                <iframe src="mundial-gdl.html" loading="lazy" title="Preview Mundial GDL"></iframe>
+              </div>
+            </article>
+
+            <article class="preview">
+              <div class="preview-bar">
                 <span class="preview-title">Mundial MTY</span>
-                <a href="mundial-mty.html" class="button secondary">Abrir página</a>
+                <a href="mundial-mty.html" class="button secondary" target="_blank" rel="noopener noreferrer">Abrir página</a>
               </div>
               <div class="preview-frame">
                 <iframe src="mundial-mty.html" loading="lazy" title="Preview Mundial MTY"></iframe>
@@ -756,20 +808,40 @@
           <div class="section-header">
             <div>
               <h3>Códigos iframe</h3>
-              <p>Snippets listos para pegar en el sitio donde se incrustan las páginas.</p>
+              <p>Código listo para pegar en el sitio donde se va a insertar la página.</p>
             </div>
             <div class="copy-feedback" aria-live="polite" id="copy-status"></div>
           </div>
 
           <div class="code-drawer">
             <div class="code-row">
-              <textarea id="gdl-code" readonly aria-label="Iframe Mapa GDL">&lt;iframe src="https://iframe.alanortiz.me/mapa-gdl.html" width="100%" height="900" style="border:0;" loading="lazy" title="Mapa GDL"&gt;&lt;/iframe&gt;</textarea>
-              <button class="button secondary" type="button" data-copy-target="gdl-code"><span class="button-icon copy"></span>Copiar GDL</button>
+              <textarea id="mapa-cdmx-code" readonly aria-label="Iframe Mapa CDMX">&lt;iframe src=&quot;https://iframe.alanortiz.me/mapa-cdmx.html&quot; width=&quot;100%&quot; height=&quot;900&quot; style=&quot;border:0;&quot; loading=&quot;lazy&quot; title=&quot;Mapa CDMX&quot;&gt;&lt;/iframe&gt;</textarea>
+              <button class="button secondary" type="button" data-copy-target="mapa-cdmx-code"><span class="button-icon copy"></span>Copiar CDMX</button>
             </div>
 
             <div class="code-row">
-              <textarea id="mty-code" readonly aria-label="Iframe Mundial MTY">&lt;iframe src="https://iframe.alanortiz.me/mundial-mty.html" width="100%" height="720" style="border:0;" loading="lazy" title="Mundial MTY"&gt;&lt;/iframe&gt;</textarea>
-              <button class="button secondary" type="button" data-copy-target="mty-code"><span class="button-icon copy"></span>Copiar MTY</button>
+              <textarea id="mapa-gdl-code" readonly aria-label="Iframe Mapa GDL">&lt;iframe src=&quot;https://iframe.alanortiz.me/mapa-gdl.html&quot; width=&quot;100%&quot; height=&quot;900&quot; style=&quot;border:0;&quot; loading=&quot;lazy&quot; title=&quot;Mapa GDL&quot;&gt;&lt;/iframe&gt;</textarea>
+              <button class="button secondary" type="button" data-copy-target="mapa-gdl-code"><span class="button-icon copy"></span>Copiar GDL</button>
+            </div>
+
+            <div class="code-row">
+              <textarea id="mapa-mty-code" readonly aria-label="Iframe Mapa MTY">&lt;iframe src=&quot;https://iframe.alanortiz.me/mapa-mty.html&quot; width=&quot;100%&quot; height=&quot;900&quot; style=&quot;border:0;&quot; loading=&quot;lazy&quot; title=&quot;Mapa MTY&quot;&gt;&lt;/iframe&gt;</textarea>
+              <button class="button secondary" type="button" data-copy-target="mapa-mty-code"><span class="button-icon copy"></span>Copiar MTY</button>
+            </div>
+
+            <div class="code-row">
+              <textarea id="mundial-cdmx-code" readonly aria-label="Iframe Mundial CDMX">&lt;iframe src=&quot;https://iframe.alanortiz.me/mundial-cdmx.html&quot; width=&quot;100%&quot; height=&quot;720&quot; style=&quot;border:0;&quot; loading=&quot;lazy&quot; title=&quot;Mundial CDMX&quot;&gt;&lt;/iframe&gt;</textarea>
+              <button class="button secondary" type="button" data-copy-target="mundial-cdmx-code"><span class="button-icon copy"></span>Copiar CDMX</button>
+            </div>
+
+            <div class="code-row">
+              <textarea id="mundial-gdl-code" readonly aria-label="Iframe Mundial GDL">&lt;iframe src=&quot;https://iframe.alanortiz.me/mundial-gdl.html&quot; width=&quot;100%&quot; height=&quot;720&quot; style=&quot;border:0;&quot; loading=&quot;lazy&quot; title=&quot;Mundial GDL&quot;&gt;&lt;/iframe&gt;</textarea>
+              <button class="button secondary" type="button" data-copy-target="mundial-gdl-code"><span class="button-icon copy"></span>Copiar GDL</button>
+            </div>
+
+            <div class="code-row">
+              <textarea id="mundial-mty-code" readonly aria-label="Iframe Mundial MTY">&lt;iframe src=&quot;https://iframe.alanortiz.me/mundial-mty.html&quot; width=&quot;100%&quot; height=&quot;720&quot; style=&quot;border:0;&quot; loading=&quot;lazy&quot; title=&quot;Mundial MTY&quot;&gt;&lt;/iframe&gt;</textarea>
+              <button class="button secondary" type="button" data-copy-target="mundial-mty-code"><span class="button-icon copy"></span>Copiar MTY</button>
             </div>
           </div>
         </section>
@@ -792,7 +864,7 @@
           textarea.blur();
         }
 
-        copyStatus.textContent = "Iframe copiado";
+        copyStatus.textContent = "Copiado";
         window.setTimeout(() => {
           copyStatus.textContent = "";
         }, 1800);

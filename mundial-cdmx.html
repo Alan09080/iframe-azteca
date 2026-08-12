@@ -1,0 +1,2428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mundial CDMX</title>
+  <link rel="icon" href="https://www.tvazteca.com/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="https://www.tvazteca.com/apple-touch-icon.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    html,
+    body {
+      font-family: 'Manrope', sans-serif;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+    }
+    #map {
+      background-color: #c3d5bf;
+      height: calc(100vh - 56px); /* Restamos la altura del banner */
+      left: 0;
+      position: fixed !important;
+      top: 56px;
+      width: 100vw;
+    }
+    /* --- ESTILOS DEL BANNER DE FILTROS --- */
+    #filter-banner {
+      align-items: center;
+      background: #1a1a1a;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      display: flex;
+      gap: 8px;
+      height: 56px;
+      left: 0;
+      overflow-x: auto;
+      padding: 0 16px;
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 1000;
+    }
+    #filter-banner::-webkit-scrollbar {
+      height: 4px;
+    }
+    #filter-banner::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 2px;
+    }
+    .filter-btn {
+        background: #2a2a2a;
+        border-radius: 20px;
+        border: 1px solid #444;
+        color: #ccc;
+        cursor: pointer;
+        flex-shrink: 0;
+        font-family: 'Manrope', sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 14px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .filter-btn:hover {
+      background: #333;
+      border-color: #666;
+      color: #fff;
+    }
+    .filter-btn.active {
+      background: #f5a623;
+      border-color: #f5a623;
+      color: #1a1a1a;
+    }
+    /* --- ESTILOS DEL POPUP PERSONALIZADO --- */
+    .leaflet-popup-content-wrapper {
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      color: #000000;
+      overflow: hidden;
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      font-family: 'Manrope', sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 0;
+      padding: 20px 18px;
+    }
+    .leaflet-popup-tip {
+      background: #ffffff;
+    }
+    .leaflet-popup-close-button {
+      color: #999 !important;
+      font-size: 18px !important;
+      right: 10px !important;
+      top: 8px !important;
+    }
+    .popup-title {
+      color: #75001d;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      padding-right: 16px;
+    }
+    .popup-description {
+      color: #000000;
+      font-size: 12.5px;
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+    a.popup-maps-link {
+      color: #75001d;
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: left;
+      text-decoration: none;
+      transition: color 0.2s linear 0s;
+    }
+    .popup-maps-link:hover {
+      color: rgba(117, 0, 29, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <div id="filter-banner">
+    <button class="filter-btn active" data-type="all">Todos</button>
+    <button class="filter-btn" data-type="comida">🍽️ Comida</button>
+    <button class="filter-btn" data-type="cultura">🏛️ Cultura</button>
+    <button class="filter-btn" data-type="compras">🛍️ Compras</button>
+    <button class="filter-btn" data-type="entretenimiento">🎶 Entretenimiento</button>
+    <button class="filter-btn" data-type="bancos">🏦 Banco Azteca</button>
+    <button class="filter-btn" data-type="wifi">📶 Wifi TotalPlay</button>
+  </div>
+
+  <div id="map"></div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <script>
+    const mapSource = 'https://cloudfront-us-east-1.images.arcpublishing.com/tvazteca/MI6KWHEKKJAMTGA7P6UTS6LL4U.jpg';
+    var map = L.map('map', {
+        crs: L.CRS.Simple,
+        minZoom: -0.25,
+        maxZoom: 2,
+        zoomSnap: 0.25,
+        zoomDelta: 0.25
+    });
+
+    var altoImagen = 2615;
+    var anchoImagen = 1320;
+
+    var bounds = [[0, 0], [altoImagen, anchoImagen]];
+    L.imageOverlay(mapSource, bounds).addTo(map);
+
+    map.fitBounds(bounds);
+    map.setMaxBounds(bounds);
+
+    var datosLugares = [
+      {
+        "id": 1,
+        "titulo": "Chabela",
+        "texto": "Chabela. Bocadería de barrio con platos ricos, buenos vinos y cervezas seleccionadas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Chabela+Juan+Cano+59+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Juan Cano 59"
+      },
+      {
+        "id": 2,
+        "titulo": "Paussa",
+        "texto": "Paussa. Cocina de mar fresca con propuestas creativas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Paussa+Antonio+León+92+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Antonio León 92"
+      },
+      {
+        "id": 3,
+        "titulo": "Tacos Tokio",
+        "texto": "Tacos Tokio. Adentro tiene un jardín precioso, te recomendamos el taco de hoja santa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Tokio+José+Morán+82+CDMX",
+        "etiqueta": "comida",
+        "direccion": "José Morán 82"
+      },
+      {
+        "id": 4,
+        "titulo": "Comal Oculto",
+        "texto": "Comal Oculto. Un homenaje al maíz. Cocina mexicana contemporánea con tetelas y gorditas espectaculares.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Comal+Oculto+Protasio+Tagle+66A+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Protasio Tagle 66A"
+      },
+      {
+        "id": 5,
+        "titulo": "Sukai",
+        "texto": "Sukai. Propuesta japonesa que va desde yakitoris y sandos, hasta una barra de sushi impecable.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Sukai+Molinos+del+Campo+50+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Molinos del Campo 50"
+      },
+      {
+        "id": 6,
+        "titulo": "Milpa",
+        "texto": "Milpa. Tacos basados en el humo y el maíz nativo, que van desde lubina y jaiba, hasta sirloin o chicharrón prensado. Su selection de vinos es imperdible.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Milpa+Tiburcio+Montiel+24+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Tiburcio Montiel 24"
+      },
+      {
+        "id": 7,
+        "titulo": "Helados meñique",
+        "texto": "Helados meñique. Gelatería artesanal con sabores creativos que cambian según los ingredientes de temporada.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Helados+meñique+Ignacio+Esteva+25D+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ignacio Esteva 25D"
+      },
+      {
+        "id": 8,
+        "titulo": "Gorditas Don Rafa",
+        "texto": "Gorditas Don Rafa. En el interior del Mercado del Chorrito, su especialidad son las gorditas de chicharrón prensado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Gorditas+Don+Rafa+Mercado+del+Chorrito+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Melchor Múzquiz s/n (Interior del Mercado del Chorrito)"
+      },
+      {
+        "id": 9,
+        "titulo": "La Pequeña Marquesa",
+        "texto": "La Pequeña Marquesa. En el interior del Mercado del Chorrito, aunque hay tacos e incluso postres, vale la pena probar sus quesadillas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Pequeña+Marquesa+Melchor+Múzquiz+75+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Melchor Múzquiz y Gobernador José Ceballos 75 (Interior del Mercado del Chorrito)"
+      },
+      {
+        "id": 10,
+        "titulo": "Antojitos Doña Mago",
+        "texto": "Antojitos Doña Mago* Como lo dice el nombre, este lugar es ideal para un antojito: quesadillas, sopes, tostadas de pata y hasta pambazos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Antojitos+Doña+Mago+Daniel+Garza+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Daniel Garza al Poniente"
+      },
+      {
+        "id": 11,
+        "titulo": "Kurimanzutto",
+        "texto": "Kurimanzutto. Una de las galerías más influyentes del mundo, ubicada en una antigua maderería renovada.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Kurimanzutto+Rafael+Rebollar+94+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Rafael Rebollar 94"
+      },
+      {
+        "id": 12,
+        "titulo": "Le Laboratoire",
+        "texto": "Le Laboratoire. Plataforma multidisciplinaria que mezcla arte contemporáneo, diseño y experimentación.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Le+Laboratoire+Antonio+León+56+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Antonio León 56"
+      },
+      {
+        "id": 13,
+        "titulo": "Casa Luis Barragán",
+        "texto": "Casa Luis Barragán. El hogar y taller del arquitecto. Un sitio de culto arquitectónico a nivel mundial.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Luis+Barragán+Francisco+Ramírez+12+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Francisco Ramírez 12"
+      },
+      {
+        "id": 14,
+        "titulo": "Casa Ortega",
+        "texto": "Casa Ortega. Casa diseñada por Barragán en 1943. Preludio conceptual de su propia casa-estudio. La fachada es discreta; el interior, un estudio de luz y color.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Ortega+Francisco+Ramírez+22+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Francisco Ramírez 22"
+      },
+      {
+        "id": 15,
+        "titulo": "Casa Gilardi",
+        "texto": "Casa Gilardi. La última obra de Barragán. Un juego magistral de luz, color y una alberca interior.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Gilardi+Antonio+León+82+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Antonio León 82"
+      },
+      {
+        "id": 16,
+        "titulo": "Galería de Arte Mexicano (GAM)",
+        "texto": "Galería de Arte Mexicano (GAM). La primera galería de México, fundamental para la historia del arte moderno del país.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Galería+de+Arte+Mexicano+GAM+Rafael+Rebollar+43+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Rafael Rebollar 43"
+      },
+      {
+        "id": 17,
+        "titulo": "Marne Panadería",
+        "texto": "Marne Panadería. Café de especialidad y repostería en un espacio de arquitectura brutalista.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Marne+Panadería+Ignacio+Esteva+35+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ignacio Esteva 35"
+      },
+      {
+        "id": 18,
+        "titulo": "Saint",
+        "texto": "Saint. Panadería reconocida por su masa madre y su repostería francesa de alta calidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Saint+Panaderia+Melchor+Múzquiz+15+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Melchor Múzquiz 15"
+      },
+      {
+        "id": 19,
+        "titulo": "Super Cope",
+        "texto": "Super Cope. Alacena gourmet y cooperativa que ofrece verduras frescas, comida orgánica y vinos. Si llegas temprano, prueba los bagels preparados.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Super+Cope+Antonio+León+31+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Antonio León 31"
+      },
+      {
+        "id": 20,
+        "titulo": "Elio Joyería",
+        "texto": "Elio Joyería. Joyería de diseño mexicano con piezas que parecen pequeñas estructuras arquitectónicas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Elio+Joyería+Tiburcio+Montiel+26+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Tiburcio Montiel 26"
+      },
+      {
+        "id": 21,
+        "titulo": "Pisotres",
+        "texto": "Pisotres. Concept store dentro del hub creativo G.56, con una selección de diseño, objetos y mobiliario.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Pisotres+Antonio+León+56+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Antonio León 56"
+      },
+      {
+        "id": 22,
+        "titulo": "Brutal",
+        "texto": "Brutal. El spot del barrio para descubrir etiquetas interesantes de forma relajada y directa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Brutal+Juan+Cano+42+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Juan Cano 42 local B"
+      },
+      {
+        "id": 23,
+        "titulo": "Vermut Decó",
+        "texto": "Vermut Decó. El hilo conductor es el vermut y sus derivados en spritz, blanco, rojo, etc. El lugar ideal para el aperitivo. En la entrada tiene una tienda maravillosa con una gran curaduría de objetos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Vermut+Decó+Juan+Cano+93+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Juan Cano 93"
+      },
+      {
+        "id": 24,
+        "titulo": "Trillo",
+        "texto": "Trillo. Platos de influencia mediterránea y pastas frescas del chef Andrés Trillo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Trillo+Cozumel+38+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Cozumel 38"
+      },
+      {
+        "id": 25,
+        "titulo": "Galea",
+        "texto": "Galea. Cocina contemporánea enfocada en pastas hechas a mano e ingredientes de temporada.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Galea+Sinaloa+67+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Sinaloa 67"
+      },
+      {
+        "id": 26,
+        "titulo": "Gia",
+        "texto": "Gia. Bistro y panadería con platos reconfortantes y un aire de barrio europeo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Gia+Aguascalientes+237+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Aguascalientes 237"
+      },
+      {
+        "id": 27,
+        "titulo": "Fónico",
+        "texto": "Fónico. Cocina mexicana moderna en una casona con diseño arquitectónico espectacular.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Fónico+Salamanca+85+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Salamanca 85"
+      },
+      {
+        "id": 28,
+        "titulo": "Ultramarinos",
+        "texto": "Ultramarinos. Un encuentro entre el mar, el humo y el pescado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ultramarinos+Mérida+21+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Mérida 21"
+      },
+      {
+        "id": 29,
+        "titulo": "Tigre Silencioso",
+        "texto": "Tigre Silencioso. Cantina moderna con platos sustanciosos y muy buena selección de mezcales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tigre+Silencioso+Colima+159+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Colima 159"
+      },
+      {
+        "id": 30,
+        "titulo": "Caldos Luis",
+        "texto": "Caldos Luis. Para caldos de gallina muy abundantes y buenos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Caldos+Luis+Puebla+188+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Puebla 188"
+      },
+      {
+        "id": 31,
+        "titulo": "Tacos El Compita",
+        "texto": "Tacos El Compita. Taquería 100% tijuanense. Prueba la birria.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+El+Compita+Puebla+esquina+Monterrey+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Puebla esquina Monterrey"
+      },
+      {
+        "id": 32,
+        "titulo": "Esquites Durango",
+        "texto": "Esquites Durango.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Esquites+Durango+Tonalá+28+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Tonalá 28"
+      },
+      {
+        "id": 33,
+        "titulo": "Quesadillas del Carmen",
+        "texto": "Quesadillas del Carmen.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Quesadillas+del+Carmen+Altata+esquina+Alfonso+Reyes+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Altata esquina Alfonso Reyes"
+      },
+      {
+        "id": 34,
+        "titulo": "El Jarocho",
+        "texto": "El Jarocho. Tacos de guisado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Jarocho+Tapachula+94+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Tapachula 94"
+      },
+      {
+        "id": 35,
+        "titulo": "Tacos Hola El Güero",
+        "texto": "Tacos Hola El Güero. Tacos de guisado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Hola+El+Güero+Amsterdam+135+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Amsterdam 135"
+      },
+      {
+        "id": 36,
+        "titulo": "Tortas al fuego",
+        "texto": "Tortas al fuego.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tortas+al+fuego+Sonora+205+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Sonora 205"
+      },
+      {
+        "id": 37,
+        "titulo": "La Esquina del Chilaquil",
+        "texto": "La Esquina del Chilaquil. La esquina legendaria de la Condesa para el desayuno callejero más famoso: tortas de chilaquil.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Esquina+del+Chilaquil+Alfonso+Reyes+139+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Alfonso Reyes 139, esquina Tamaulipas"
+      },
+      {
+        "id": 38,
+        "titulo": "Nevería Roxy",
+        "texto": "Nevería Roxy. Heladería con recetas de 1946 y un ambiente que se detuvo en el tiempo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Nevería+Roxy+Fernando+Montes+de+Oca+89+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Fernando Montes de Oca 89"
+      },
+      {
+        "id": 39,
+        "titulo": "Helados Super Tyrano",
+        "texto": "Helados Super Tyrano. Helados de autor con combinaciones inesperadas y texturas cremosas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Helados+Super+Tyrano+Sinaloa+125+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Sinaloa 125"
+      },
+      {
+        "id": 40,
+        "titulo": "Casa Bosques",
+        "texto": "Casa Bosques. Curaduría impecable de libros de arte, moda y diseño; un paraíso para coleccionistas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Bosques+Cordoba+25+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Cordoba 25"
+      },
+      {
+        "id": 41,
+        "titulo": "Erre Vintage",
+        "texto": "Erre Vintage. Selección rigurosa de piezas vintage de lujo y tesoros de segunda mano.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Erre+Vintage+Sonora+178+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Sonora 178"
+      },
+      {
+        "id": 42,
+        "titulo": "Zapatería Monica Marquez",
+        "texto": "Zapatería Monica Marquez. Calzado de autor hecho en México, famoso por sus botas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Zapatería+Monica+Marquez+Jalapa+128+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Jalapa 128"
+      },
+      {
+        "id": 43,
+        "titulo": "Numen",
+        "texto": "Numen. Boutique de diseño de interiores con mobiliario y objetos de estética.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Numen+Boutique+CDMX",
+        "etiqueta": "compras",
+        "direccion": "No especificada en el texto"
+      },
+      {
+        "id": 44,
+        "titulo": "Iker Ortiz",
+        "texto": "Iker Ortiz. Joyería de estética industrial y geométrica que utiliza materiales como acero, titanio y plata.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Iker+Ortiz+Colima+256+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Colima 256"
+      },
+      {
+        "id": 45,
+        "titulo": "Rallado quesería",
+        "texto": "Rallado quesería. Expendio de quesos artesanales nacionales y productos de origen local.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Rallado+quesería+Campeche+348+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Campeche 348"
+      },
+      {
+        "id": 46,
+        "titulo": "Rumor",
+        "texto": "Rumor. Tienda de ropa y cafetería con conciencia ambiental y una curaduría de marcas independientes.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Rumor+Tienda+Sonora+204+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Sonora 204"
+      },
+      {
+        "id": 47,
+        "titulo": "Mezcalia",
+        "texto": "Mezcalia. Expendio de mezcales de pequeños productores con etiquetas difíciles de encontrar.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mezcalia+Tlacotalpan+6+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Tlacotalpan 6"
+      },
+      {
+        "id": 48,
+        "titulo": "Tierras de Uva",
+        "texto": "Tierras de Uva, wine bar. Bar de vinos con una carta sólida de etiquetas españolas y platos para picar.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tierras+de+Uva+Sinaloa+74+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Sinaloa 74"
+      },
+      {
+        "id": 49,
+        "titulo": "Zimo",
+        "texto": "Zimo. Listening bar con audio de alta fidelidad para disfrutar música curada y buenos tragos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Zimo+Saltillo+42+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "Saltillo 42"
+      },
+      {
+        "id": 50,
+        "titulo": "Bar Felix",
+        "texto": "Bar Felix. Punto de encuentro clásico para sliders. Buenos martinis y ambiente con style.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bar+Felix+Álvaro+Obregón+64+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Álvaro Obregón 64"
+      },
+      {
+        "id": 51,
+        "titulo": "Tlecán",
+        "texto": "Tlecán. Mezcalería que destaca por su diseño y su selección de agaves silvestres.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tlecán+Álvaro+Obregón+228+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Álvaro Obregón 228"
+      },
+      {
+        "id": 52,
+        "titulo": "Form + Matter (FO+MA)",
+        "texto": "Form + Matter (FO+MA). Bar y laboratorio de mixología 100%.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Form+Matter+San+Luis+Potosí+37+CDMX",
+        "etiqueta": "comida",
+        "direccion": "San Luis Potosí 37"
+      },
+      {
+        "id": 53,
+        "titulo": "Café Tormenta",
+        "texto": "Café Tormenta. Barra de café de especialidad a pie de calle con buena música y vinilos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Café+Tormenta+Puebla+90+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Puebla 90"
+      },
+      {
+        "id": 54,
+        "titulo": "Cuina",
+        "texto": "Cuina. Un proyecto de puro amor a la repostería. Te recomendamos llegar temprano.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cuina+Tabasco+46+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Tabasco 46"
+      },
+      {
+        "id": 55,
+        "titulo": "%Arabica",
+        "texto": "%Arabica. Café japonés de especialidad reconocido por su diseño minimalista y granos de calidad en el Hotel Condesa DF.",
+        "url": "https://www.google.com/maps/search/?api=1&query=%25Arabica+Veracruz+102+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Veracruz 102 (Hotel Condesa DF)"
+      },
+      {
+        "id": 56,
+        "titulo": "Plaza Río de Janeiro",
+        "texto": "Plaza Río de Janeiro. En el centro del parque hay una réplica del David de Miguel Ángel. Un gesto europeo insertado en una colonia que aspiraba a París.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Plaza+Río+de+Janeiro+Durango+y+Orizaba+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Durango y Orizaba"
+      },
+      {
+        "id": 57,
+        "titulo": "Casa Basalta",
+        "texto": "Casa Basalta. Edificio contemporáneo de Alberto Kalach con fachada de piedra basáltica: austero, escultórico y muy fotografiable. Es una pieza clave del nuevo lenguaje arquitectónico de la Roma. Aquí la materia y la textura importan tanto como la forma.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Basalta+Colima+159+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Colima 159 local 2D"
+      },
+      {
+        "id": 58,
+        "titulo": "MODO (Museo del Objeto del Objeto)",
+        "texto": "MODO (Museo del Objeto del Objeto). Dedicado al diseño y la cultura material cotidiana del siglo XX. Publicidad, empaques y objetos que narran la historia visual del consumo en México.",
+        "url": "https://www.google.com/maps/search/?api=1&query=MODO+Colima+145+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Colima 145"
+      },
+      {
+        "id": 59,
+        "titulo": "Parque México",
+        "texto": "Parque México. Parque art déco trazado en el antiguo Hipódromo. Es uno de los mejores ejemplos de urbanismo moderno de los años 30.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Parque+México+Hipódromo+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "México s/n, Hipódromo"
+      },
+      {
+        "id": 60,
+        "titulo": "Edificio Basurto",
+        "texto": "Edificio Basurto. Ícono funcionalista con soluciones antisísmicas pioneras. Uno de los edificios residenciales más importantes del modernismo mexicano.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Edificio+Basurto+México+187+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "México 187, Hipódromo"
+      },
+      {
+        "id": 61,
+        "titulo": "Casa Museo Guillermo Tovar de Teresa",
+        "texto": "Casa Museo Guillermo Tovar de Teresa. Una mansión porfiriana que resguarda una gran colección de arte e historia de México.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Museo+Guillermo+Tovar+de+Teresa+Valladolid+52+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Valladolid 52"
+      },
+      {
+        "id": 62,
+        "titulo": "OMR",
+        "texto": "OMR.",
+        "url": "https://www.google.com/maps/search/?api=1&query=OMR+Córdoba+100+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Córdoba 100"
+      },
+      {
+        "id": 63,
+        "titulo": "Arróniz Arte Contemporáneo",
+        "texto": "Arróniz Arte Contemporáneo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Arróniz+Arte+Contemporáneo+Tabasco+198+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Tabasco 198"
+      },
+      {
+        "id": 64,
+        "titulo": "ALMANAQUE fotográfica",
+        "texto": "ALMANAQUE fotográfica.",
+        "url": "https://www.google.com/maps/search/?api=1&query=ALMANAQUE+fotográfica+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "No especificada en el texto"
+      },
+      {
+        "id": 65,
+        "titulo": "Estación Maizajo",
+        "texto": "Estación Maizajo* Un pop up del restaurante Maizajo en Estación Indianilla. Del 11 junio al 19 de julio.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Estación+Maizajo+Claudio+Bernard+111+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Claudio Bernard 111"
+      },
+      {
+        "id": 66,
+        "titulo": "Paletería Maya",
+        "texto": "Paletería Maya*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Paletería+Maya+Dr+Velasco+1+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Dr. Velasco 1 local D"
+      },
+      {
+        "id": 67,
+        "titulo": "Laguna México",
+        "texto": "Laguna México. Antigua fábrica recuperada que funciona como hub de estudios creativos y diseño. Visita Década, Ánfora Studio, Déjate Querer, La Metropolitana.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Laguna+México+Dr+Lucio+181+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Dr. Lucio 181"
+      },
+      {
+        "id": 68,
+        "titulo": "Museo del juguete Antiguo (MUJAM)",
+        "texto": "Museo del juguete Antiguo (MUJAM). Colección de nostalgia y cultura popular en una antigua vecindad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=MUJAM+Dr+Olvera+15+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Dr. Olvera 15"
+      },
+      {
+        "id": 69,
+        "titulo": "Arena México",
+        "texto": "Arena México. Catedral de la lucha libre. Cultura popular urbana e",
+        "url": "https://www.google.com/maps/search/?api=1&query=Arena+México+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "No especificada en el texto"
+      },
+      {
+        "id": 70,
+        "titulo": "Taller de Ostiones",
+        "texto": "Taller de Ostiones. Barra de mariscos frescos, ostiones y almejas en un ambiente relajado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Taller+de+Ostiones+Versalles+113+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Versalles 113"
+      },
+      {
+        "id": 71,
+        "titulo": "Olaf",
+        "texto": "Olaf. Propuesta de inspiración nórdica especializada en smørrebrød y repostería.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Olaf+Liverpool+92+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Liverpool 92"
+      },
+      {
+        "id": 72,
+        "titulo": "El maldito de Jalisco",
+        "texto": "El maldito de Jalisco. Lonches y tortas ahogadas con el sabor auténtico de Guadalajara.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+maldito+de+Jalisco+Versalles+80+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Versalles 80"
+      },
+      {
+        "id": 73,
+        "titulo": "Esquites Reforma 222",
+        "texto": "Esquites Reforma 222. En este puesto encontrarás uno de los mejores esquites de la zona.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Esquites+Reforma+222+Nápoles+esquina+Av+Reforma+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Nápoles esquina Av. Reforma"
+      },
+      {
+        "id": 74,
+        "titulo": "Joe Gelato",
+        "texto": "Joe Gelato.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Joe+Gelato+Versalles+78+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Versalles 78"
+      },
+      {
+        "id": 75,
+        "titulo": "Tostador 1",
+        "texto": "Tostador 1. Tostadora local que ofrece tazas precisas y granos recién tostados.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tostador+1+Londres+31+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Londres 31"
+      },
+      {
+        "id": 76,
+        "titulo": "Testarudo",
+        "texto": "Testarudo. Café de barrio con buena panadería y un ambiente tranquilo para pausar.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Testarudo+Nápoles+47+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Nápoles 47"
+      },
+      {
+        "id": 77,
+        "titulo": "Okalite casa mexicana de té",
+        "texto": "Okalite casa mexicana de té. Dedicada a promover y difundir el té cultivado en México.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Okalite+Marsella+23B+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Marsella 23B"
+      },
+      {
+        "id": 78,
+        "titulo": "La Rifa Chocolatería",
+        "texto": "La Rifa Chocolatería. Además de comprar barras de cacao que allí mismo preparan, no te vayas sin probar alguna de sus bebidas. No te vas a arrepentir.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Rifa+Chocolatería+Dinamarca+47+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Dinamarca 47"
+      },
+      {
+        "id": 79,
+        "titulo": "Ruido",
+        "texto": "Ruido. Listening bar con un sistema de sonido de alta fidelidad y vinilos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ruido+Listening+Bar+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "No especificada en el texto"
+      },
+      {
+        "id": 80,
+        "titulo": "Cantina Cuchilleros",
+        "texto": "Cantina Cuchilleros* Cantina tradicional con comida española-mexicana. Pide los escamoles y que preparen tu salsa en molcajete.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cantina+Cuchilleros+Madrid+17+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Madrid 17"
+      },
+      {
+        "id": 81,
+        "titulo": "Cicatriz",
+        "texto": "Cicatriz. Es ideal para desayunos, vinos naturales o un gin and tonic.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cicatriz+Dinamarca+44+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Dinamarca 44"
+      },
+      {
+        "id": 82,
+        "titulo": "Mansiones Porfirianas de la Juárez",
+        "texto": "Mansiones Porfirianas de la Juárez* Calles como Londres, Liverpool y Berlín conservan residencias afrancesadas de principios del siglo XX. Muchas fueron embajadas, otras albergan galerías y oficinas creativas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Colonia+Juarez+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Calles Londres, Liverpool y Berlín, Col. Juárez"
+      },
+      {
+        "id": 83,
+        "titulo": "Utilitario Mexicano",
+        "texto": "Utilitario Mexicano. Tienda de objetos de uso cotidiano con diseño funcional y estética mexicana. Siempre encontramos algo qué comprar.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Utilitario+Mexicano+Marsella+3+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Marsella 3"
+      },
+      {
+        "id": 84,
+        "titulo": "A mesa puesta",
+        "texto": "A mesa puesta. Objetos para la mesa, mantelería y accesorios de cocina diferentes. Bonitos y de muy buena calidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=A+mesa+puesta+Marsella+31+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Marsella 31"
+      },
+      {
+        "id": 85,
+        "titulo": "Campillo",
+        "texto": "Campillo. Diseños inspirados en la sastrería tradicional y la cultura charra.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Campillo+Marsella+68+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Marsella 68"
+      },
+      {
+        "id": 86,
+        "titulo": "Casa Denim",
+        "texto": "Casa Denim. Para los amantes del denim de alta calidad y la sastrería.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Denim+Marsella+70+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Marsella 70"
+      },
+      {
+        "id": 87,
+        "titulo": "Xinu Perfumes",
+        "texto": "Xinu Perfumes. Alta perfumería inspirada en la botánica. El diseño de su tienda, botellas y empaques son toda una experiencia.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Xinu+Perfumes+Marsella+68+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Marsella 68"
+      },
+      {
+        "id": 88,
+        "titulo": "Vera colectivo",
+        "texto": "Vera colectivo. Plataforma de diseño local que ofrece ropa, accesorios y objetos de creadores emergentes.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Vera+colectivo+Marsella+56+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Marsella 56"
+      },
+      {
+        "id": 89,
+        "titulo": "1/8 Takamura",
+        "texto": "1/8 Takamura. Moda que mezcla la funcionalidad japonesa con raíces mexicanas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=1%2F8+Takamura+Dinamarca+66+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Dinamarca 66"
+      },
+      {
+        "id": 90,
+        "titulo": "Incendiarias",
+        "texto": "Incendiarias. Librería y espacio cultural enfocada en el feminismo y diseño.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Incendiarias+CDMX",
+        "etiqueta": "compras",
+        "direccion": "No especificada en el texto"
+      },
+      {
+        "id": 91,
+        "titulo": "Taco Tasting Room",
+        "texto": "Taco Tasting Room. Experiencia de degustación de tacos con solo 14 lugares en un formato muy dinámico y divertido.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Taco+Tasting+Room+Av+5+de+Mayo+47+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Av. 5 de Mayo 47"
+      },
+      {
+        "id": 92,
+        "titulo": "Bar La Ópera",
+        "texto": "Bar La Ópera. Antes de pedir, mira al techo: el orificio de bala atribuido a Pancho Villa permanece visible. Fue punto de reunión de políticos y artistas durante el Porfiriato. Es uno de los pocos salones históricos del Centro que atravesó la Revolución.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bar+La+Ópera+Av+5+de+Mayo+10+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Av. 5 de Mayo 10"
+      },
+      {
+        "id": 93,
+        "titulo": "El Gran Cazador",
+        "texto": "El Gran Cazador. En el interior del Mercado de San Juan encontrarás este local donde puedes probar carnes exóticas como cocodrilo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Gran+Cazador+Mercado+de+San+Juan+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ernesto Pugibet local 94 (Interior del Mercado de San Juan)"
+      },
+      {
+        "id": 94,
+        "titulo": "Cabo San Juan",
+        "texto": "Cabo San Juan. También en el Mercado de San Juan, es una gran opción para comer mariscos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cabo+San+Juan+Mercado+de+San+Juan+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ernesto Pugibet local 94 (Interior del Mercado de San Juan)"
+      },
+      {
+        "id": 95,
+        "titulo": "Mariscos Los Sirenos",
+        "texto": "Mariscos Los Sirenos. Para los amantes de los mariscos estilos sinaloa, visitalos en el Mercado de San Juan.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mariscos+Los+Sirenos+Mercado+de+San+Juan+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ernesto Pugibet local 94 (Interior del Mercado de San Juan)"
+      },
+      {
+        "id": 96,
+        "titulo": "Churros El Moro",
+        "texto": "Churros El Moro. Tiene muchas sucursales, la original la encontrarás en el Centro Histórico.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Churros+El+Moro+Eje+Central+Lázaro+Cárdenas+42+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Eje Central Lázaro Cárdenas 42"
+      },
+      {
+        "id": 97,
+        "titulo": "El Cherán",
+        "texto": "El Cherán. Carnitas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Cherán+Av+Arcos+de+Belén+3+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Av. Arcos de Belén 3"
+      },
+      {
+        "id": 98,
+        "titulo": "Tacos de Oro XEW",
+        "texto": "Tacos de Oro XEW. Para tacos de cochinita.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+de+Oro+XEW+López+107+CDMX",
+        "etiqueta": "comida",
+        "direccion": "López 107"
+      },
+      {
+        "id": 99,
+        "titulo": "Taqueria El Torito",
+        "texto": "Taqueria El Torito. Para tacos de suadero y de tripa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Taqueria+El+Torito+Isabel+la+Católica+83+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Isabel la Católica 83"
+      },
+      {
+        "id": 100,
+        "titulo": "Cantina La Mascota",
+        "texto": "Cantina La Mascota. Cantina de la vieja guardia. Es famosa por sus botanas abundantes y su ambiente festivo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cantina+La+Mascota+Mesones+20+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Mesones 20"
+      },
+      {
+        "id": 101,
+        "titulo": "Pulquería Las Duelistas",
+        "texto": "Pulquería Las Duelistas. Pulquería tradicional donde la bebida prehispánica del maguey sigue viva. Sus murales coloridos y saturados crean una atmósfera kitsch y popular difícil de encontrar en otros barrios. Es un contraste directo con los salones elegantes del Porfiriato.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Pulquería+Las+Duelistas+Aranda+28+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Aranda 28"
+      },
+      {
+        "id": 102,
+        "titulo": "Triana Café Gourmet",
+        "texto": "Triana Café Gourmet. Don Pablo hace las mezclas de café mexicano. Tómate tu café mientras platicas con él.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Triana+Café+Gourmet+Mercado+de+San+Juan+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ernesto Pugibet 21 (Dentro del Mercado de San Juan)"
+      },
+      {
+        "id": 103,
+        "titulo": "Panque de nata",
+        "texto": "Panque de nata. No solo el panqué es delicioso, los polvorones también lo son.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Panque+de+nata+Luis+Moya+82+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Luis Moya 82"
+      },
+      {
+        "id": 104,
+        "titulo": "La Ideal",
+        "texto": "La Ideal. Un monumento a la panadería mexicana, famoso por sus cajas azules.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Pasteleria+La+Ideal+16+de+septiembre+18+CDMX",
+        "etiqueta": "comida",
+        "direccion": "16 de septiembre 18"
+      },
+      {
+        "id": 105,
+        "titulo": "Palacio Postal",
+        "texto": "Palacio Postal. Inaugurado en 1907, es probablemente la oficina postal más ornamentada de América Latina. Su estructura combina gótico veneciano, plateresco español y detalles art nouveau, con herrería de bronce traída desde Florencia. Lo excepcional: más de un siglo después, sigue funcionando como oficina postal dentro de un palacio que parece museo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Palacio+Postal+Tacuba+1+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Tacuba 1"
+      },
+      {
+        "id": 106,
+        "titulo": "Ex Teresa Arte Actual",
+        "texto": "Ex Teresa Arte Actual. Antiguo templo del siglo XVII hoy dedicado a arte contemporáneo y performance. La verticalidad gótica amplifica sonido y cuerpo. El pasado sacro sostiene la experimentación radical.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ex+Teresa+Arte+Actual+Lic+Verdad+8+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Lic. Verdad 8"
+      },
+      {
+        "id": 107,
+        "titulo": "Casa de los Azulejos",
+        "texto": "Casa de los Azulejos. Su fachada está completamente revestida en azulejos de talavera poblana del siglo XVIII, algo inusual incluso en México. Fue residencia de los Condes del Valle de Orizaba antes de convertirse en una tienda departamental.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+de+los+Azulejos+Av+Francisco+I+Madero+4+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. Francisco I. Madero 4"
+      },
+      {
+        "id": 108,
+        "titulo": "Palacio de Bellas Artes",
+        "texto": "Palacio de Bellas Artes. Construido durante tres décadas (1904–1934), sobrevivió a la Revolución antes de convertirse en el máximo recinto cultural del país. Su fachada de mármol blanco y su interior art déco lo convierten en uno de los edificios más reconocibles de América Latina. La entrada para ver sus murales es gratuita. El escenario principal está protegido por un telón diseñado por la casa Tiffany. Está compuesto por casi un millón de piezas de vidrio y pesa alrededor de 24 toneladas. Mejor encuadre: el mejor punto para fotografiarlo no es desde la plaza principal. Cruza la avenida y sube a la cafetería del edificio Sears frente al palacio. Experiencia escénica imperdible: el Ballet Folklórico de México (Amalia Hernández).",
+        "url": "https://www.google.com/maps/search/?api=1&query=Palacio+de+Bellas+Artes+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. Juárez s/n, esquina con Eje Central Lázaro"
+      },
+      {
+        "id": 109,
+        "titulo": "Torre Latinoamericana (Mirador)",
+        "texto": "Torre Latinoamericana (Mirador) Fue el edificio más alto de América Latina cuando se inauguró en 1956. Símbolo de ingeniería antisísmica latinoamericana. Resistió los sismos de 1957, 1985 y 2017. Mejor encuadre: camina hacia la Alameda Central y colócate frente al Palacio de Bellas Artes, desde ahí la torre aparece alineada detrás del mármol blanco.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Torre+Latinoamericana+Eje+Central+Lázaro+Cárdenas+2+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Eje Central Lázaro Cárdenas 2"
+      },
+      {
+        "id": 110,
+        "titulo": "Catedral Metropolitana",
+        "texto": "Catedral Metropolitana El templo más grande de América Latina construido sobre el antiguo lago de Tenochtitlán. Se ha hundido más de diez metros desde el periodo colonial.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Catedral+Metropolitana+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Plaza de la Constitución s/n"
+      },
+      {
+        "id": 111,
+        "titulo": "Zócalo",
+        "texto": "Zócalo Es una de las plazas públicas más grandes del mundo. Aquí han ocurrido coronaciones virreinales, proclamaciones de independencia, protestas masivas y celebraciones nacionales. Bajo sus losas estuvo el centro ceremonial de Tenochtitlán; hoy sigue siendo el corazón simbólico de México. Tip: la terraza del Gran Hotel ofrece una de las panorámicas más limpias del Zócalo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Zócalo+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Plaza de la Constitución 463-803"
+      },
+      {
+        "id": 112,
+        "titulo": "Templo Mayor",
+        "texto": "Templo Mayor Aquí estuvo el centro ceremonial de Tenochtitlán, una de las ciudades más grandes y sofisticadas del mundo en el siglo XVI, construida sobre un sistema de canales y calzadas en medio del lago. Hoy las ruinas emergen a pocos metros de la Catedral.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Templo+Mayor+Seminario+8+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Seminario 8"
+      },
+      {
+        "id": 113,
+        "titulo": "Gran Hotel Ciudad de México",
+        "texto": "Gran Hotel Ciudad de México Su cúpula Tiffany es una de las más espectaculares del continente. La escalera curva resume el lujo porfiriano.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Gran+Hotel+Ciudad+de+México+16+de+septiembre+82+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "16 de septiembre 82"
+      },
+      {
+        "id": 114,
+        "titulo": "Colegio de las Vizcaínas",
+        "texto": "Colegio de las Vizcaínas Fundado en 1732, no ha cerrado un solo día desde su apertura, incluso se mantuvo abierto durante la Independencia y la Revolución.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Colegio+de+las+Vizcaínas+Vizcaínas+21+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Vizcaínas 21"
+      },
+      {
+        "id": 115,
+        "titulo": "Museo Nacional de Arte (MUNAL)",
+        "texto": "Museo Nacional de Arte (MUNAL) Ubicado en un palacio de principios del siglo XX, reúne una de las colecciones más completas de arte mexicano del periodo virreinal al moderno. Su arquitectura monumental refleja la ambición institucional de la época anterior a la Revolución.",
+        "url": "https://www.google.com/maps/search/?api=1&query=MUNAL+Tacuba+8+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Tacuba 8"
+      },
+      {
+        "id": 116,
+        "titulo": "Sinagoga Histórica Justo Sierra",
+        "texto": "Sinagoga Histórica Justo Sierra Construida en 1941 por la comunidad ashkenazí. Conserva su atmósfera íntima y detalles originales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Sinagoga+Histórica+Justo+Sierra+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Justo Sierra"
+      },
+      {
+        "id": 117,
+        "titulo": "Mercado San Juan",
+        "texto": "Mercado San Juan Mercado especializado en ingredientes inusuales y gourmet. Es un centro de distribución importante para todos los restaurantes de la CDMX.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mercado+San+Juan+Ernesto+Pugibet+21+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ernesto Pugibet 21"
+      },
+      {
+        "id": 118,
+        "titulo": "Museo Kaluz",
+        "texto": "Museo Kaluz El edificio funcionó como vecindad durante gran parte del siglo XX. Uno de sus habitantes fue Germán Valdés “Tin Tan”, ícono del cine mexicano. Hoy, tras una restauración integral, alberga una colección privada de arte mexicano del siglo XIX al XXI. Tip: sube a la terraza para ver la Alameda Central.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Kaluz+Av+Hidalgo+85+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. Hidalgo 85"
+      },
+      {
+        "id": 119,
+        "titulo": "La Lagunilla (domingo)",
+        "texto": "La Lagunilla (domingo)* Tianguis dominical de antigüedades, mobiliario modernista, arte, ropa vintage y objetos inesperados. Es un espacio de intercambio real entre coleccionistas y curiosos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tianguis+La+Lagunilla+González+Bocanegra+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Calle González Bocanegra"
+      },
+      {
+        "id": 120,
+        "titulo": "Plaza Garibaldi",
+        "texto": "Plaza Garibaldi* Histórica plaza con mariachis en vivo las 24 horas. El corazón de la música tradicional mexicana en su estado más puro y auténtico. Tip: visitala en grupo y por la noche para vivir la experiencia completa; negocia el precio antes de que comiencen a tocar.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Plaza+Garibaldi+Eje+Central+Lázaro+Cárdenas+43+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "Eje Central Lázaro Cárdenas 43"
+      },
+      {
+        "id": 121,
+        "titulo": "Museo de Arte Popular",
+        "texto": "Museo de Arte Popular Ubicado en una antigua estación de bomberos estilo art déco. Exhibe arte popular de distintas regiones del país. Tip: sube al último nivel, es el mejor punto para apreciar la escala real de los alebrijes y las máscaras ceremoniales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+de+Arte+Popular+Revillagigedo+11+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Revillagigedo 11"
+      },
+      {
+        "id": 122,
+        "titulo": "Discopolis",
+        "texto": "Discopolis* Para coleccionistas de vinilos, CDs y tesoros musicales difíciles de encontrar.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Discopolis+Insurgentes+Centro+72-E+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Insurgentes Centro 72-E"
+      },
+      {
+        "id": 123,
+        "titulo": "RRetiemble",
+        "texto": "RRetiemble* Taller de serigrafía y tienda de diseño.",
+        "url": "https://www.google.com/maps/search/?api=1&query=RRetiemble+CDMX",
+        "etiqueta": "compras",
+        "direccion": "No especificada en el texto"
+      },
+      {
+        "id": 124,
+        "titulo": "Xuva",
+        "texto": "Xuva* Cocina oaxaqueña. Tip: Pide el mezcal de la casa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Xuva+Salvador+Díaz+Mirón+128+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Salvador Díaz Mirón 128"
+      },
+      {
+        "id": 125,
+        "titulo": "Vacaciones",
+        "texto": "Vacaciones* Menú con inspiración italiana. Tip: Pide el orecchiette con ‘nduja, y el vacio de Waygu con lentejas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Vacaciones+Restaurante+Manuel+María+Contreras+35+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Manuel María Contreras 35"
+      },
+      {
+        "id": 126,
+        "titulo": "Salón Ríos",
+        "texto": "Salón Ríos* Cantina mexicana.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Salón+Ríos+Río+Lerma+218+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Río Lerma 218"
+      },
+      {
+        "id": 127,
+        "titulo": "El Califa de León",
+        "texto": "El Califa de León* Esta taquería fue la primera en su tipo en ser reconocida por la Guía Michelin en México.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Califa+de+León+Av+Ribera+de+San+Cosme+56+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Av. Ribera de San Cosme 56"
+      },
+      {
+        "id": 128,
+        "titulo": "Tacos El Paisa",
+        "texto": "Tacos El Paisa*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+El+Paisa+Joaquín+García+Icazbalceta+36+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Joaquín García Icazbalceta 36"
+      },
+      {
+        "id": 129,
+        "titulo": "Biblioteca Vasconcelos",
+        "texto": "Biblioteca Vasconcelos* Joya arquitectónica contemporánea diseñada por Alberto Kalach. ¡Un imperdible!",
+        "url": "https://www.google.com/maps/search/?api=1&query=Biblioteca+Vasconcelos+Eje+1+Norte+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Eje 1 Norte s/n"
+      },
+      {
+        "id": 130,
+        "titulo": "Monumento a la Revolución",
+        "texto": "Monumento a la Revolución* Estructura de un proyecto legislativo inconcluso reconvertida en mausoleo revolucionario y mirador urbano.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Monumento+a+la+Revolución+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Plaza de la República s/n"
+      },
+      {
+        "id": 131,
+        "titulo": "Show Malinche",
+        "texto": "Show Malinche* Show espectacular de Nacho Cano inspirado en la historia de La Malinche y Hernán Cortés en el Frontón México.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Frontón+México+Plaza+de+la+República+17+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "Plaza de la República 17 (Frontón México)"
+      },
+      {
+        "id": 132,
+        "titulo": "Cucurucho & Company",
+        "texto": "Cucurucho & Company* Prueba su clásico espresso elaborado con el grano Oro Di Napoli.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cucurucho+%26+Company+Río+Tigris+27+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Río Tigris 27"
+      },
+      {
+        "id": 133,
+        "titulo": "El Pan de María",
+        "texto": "El Pan de María*",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Pan+de+María+Santa+María+la+Ribera+13+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Santa María la Ribera 13"
+      },
+      {
+        "id": 134,
+        "titulo": "Colonia meadery",
+        "texto": "Colonia meadery* El primer bar de la ciudad dedicado exclusivamente a la producción y consumo de hidromiel.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Colonia+meadery+General+Primm+CDMX",
+        "etiqueta": "comida",
+        "direccion": "General Primm"
+      },
+      {
+        "id": 135,
+        "titulo": "Er RRe",
+        "texto": "Er RRe. Es un lugar de pocos asientos. Reserva y pide el orzo con cangrejo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Er+RRe+Polanco+8+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Polanco 8"
+      },
+      {
+        "id": 136,
+        "titulo": "Casa Marena",
+        "texto": "Casa Marena. Cocina costera con tintes mediterráneos. Prueba el pescado zarandeado al carbón.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Marena+Campos+Elíseos+142+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Campos Elíseos 142"
+      },
+      {
+        "id": 137,
+        "titulo": "Caldos D’Leo",
+        "texto": "Caldos D’Leo*. Caldos y cocina mexicana.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Caldos+D’Leo+Av+Ejército+Nacional+1014+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Av. Ejército Nacional 1014 local B"
+      },
+      {
+        "id": 138,
+        "titulo": "Cochi Baboy",
+        "texto": "Cochi Baboy*. El lugar ideal para disfrutar de una cochinita pibil espectacular.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cochi+Baboy+Horacio+esquina+Periférico+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Horacio esquina Periférico"
+      },
+      {
+        "id": 139,
+        "titulo": "Don Nino",
+        "texto": "Don Nino.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Don+Nino+Lamartine+300+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Lamartine 300"
+      },
+      {
+        "id": 140,
+        "titulo": "Adriana Soto showroom",
+        "texto": "Adriana Soto showroom. Calzado artesanal a la medida. Solo por cita.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Adriana+Soto+showroom+Séneca+41+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Séneca 41"
+      },
+      {
+        "id": 141,
+        "titulo": "Lago",
+        "texto": "Lago. Boutique donde encontrarás piezas de diseño de lujo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Lago+Boutique+Masaryk+310+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Masaryk 310"
+      },
+      {
+        "id": 142,
+        "titulo": "Onora",
+        "texto": "Onora. Objetos utilitarios para el hogar que fusionan diseño contemporáneo y artesanía tradicional.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Onora+Lope+de+vega+330+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Lope de vega 330"
+      },
+      {
+        "id": 143,
+        "titulo": "Bomboti - arte y tienda",
+        "texto": "Bomboti - arte y tienda. Espacio híbrido entre arte, tienda y artesanía mexicana de alta curaduría.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Bomboti+Hegel+232+CDMX",
+        "etiqueta": "compras",
+        "direccion": "Hegel 232"
+      },
+      {
+        "id": 144,
+        "titulo": "El Cafeto",
+        "texto": "El Cafeto. La essence del gusto mexicano en dulces a granel: mazapanes, cacahuates japoneses y paletas tradicionales.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Cafeto+Julio+Verne+90+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Julio Verne 90"
+      },
+      {
+        "id": 145,
+        "titulo": "Franz 145",
+        "texto": "Franz 145. Bar con una vibra de speakeasy.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Franz+145+Anatole+France+145+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Anatole France 145"
+      },
+      {
+        "id": 146,
+        "titulo": "Ticuchi",
+        "texto": "Ticuchi. Agaves y cocina de cantina por Enrique Olvera. Imperdibles: su selección de mezcal y el tamal de esquites con quesillo y cacao.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ticuchi+Polanco+CDMX",
+        "etiqueta": "comida",
+        "direccion": "No especificada en el texto"
+      },
+      {
+        "id": 147,
+        "titulo": "La Sotomayor",
+        "texto": "La Sotomayor. Cantina fina ideal para sobremesas largas. Imperdibles: cachetada de camarón, la tostada de atún y el taco Sotomayor.",
+        "url": "https://www.google.com/maps/search/?api=1&query=La+Sotomayor+Anatole+France+70+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Anatole France 70"
+      },
+      {
+        "id": 148,
+        "titulo": "Proyectos Monclova",
+        "texto": "Proyectos Monclova.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Proyectos+Monclova+Lamartine+415+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Lamartine 415"
+      },
+      {
+        "id": 149,
+        "titulo": "LS Galería",
+        "texto": "LS Galería.",
+        "url": "https://www.google.com/maps/search/?api=1&query=LS+Galería+Enrique+Ibsen+32+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Enrique Ibsen 32 local A"
+      },
+      {
+        "id": 150,
+        "titulo": "Museo Jumex",
+        "texto": "Museo Jumex*. Núcleo del arte contemporáneo privado en el país. Su icónico edificio es obra de David Chipperfield (Pritzker 2023). Tip: del 28 de marzo al 26 de julio se presentará la exposición “Fútbol y Arte. Esa misma emoción”.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Jumex+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Blvd. Miguel de Cervantes Saavedra 303"
+      },
+      {
+        "id": 151,
+        "titulo": "Sala de Arte Público Siqueiros (SAPS)",
+        "texto": "Sala de Arte Público Siqueiros (SAPS). Espacio fundado por Siqueiros como laboratorio de arte contemporáneo y reflexión política. Más que museo, es centro de investigación y experimentación vinculado al muralismo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Sala+de+Arte+Público+Siqueiros+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "No especificada en el texto"
+      },
+      {
+        "id": 152,
+        "titulo": "Parque Lincoln",
+        "texto": "Parque Lincoln. Parque central de Polanco con estanques, torre del reloj y galerías públicas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Parque+Lincoln+Polanco+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "Av. Emilio Castelar 163"
+      },
+      {
+        "id": 153,
+        "titulo": "MYST",
+        "texto": "MYST*. Show musical de pop y rock en el que no podrás quedarte sentado.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Foro+Totalplay+Antara+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "Foro Totalplay (en Antara, Av. Ejército Nacional Mexicano 843)"
+      },
+      {
+        "id": 154,
+        "titulo": "Calles de Coyoacán",
+        "texto": "Calles de Coyoacán*. Sus empedradas y altos muros recuerdan su breve etapa como capital de la Nueva España. Visita Francisco Sosa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Coyoacán+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Calle Francisco Sosa, Coyoacán"
+      },
+      {
+        "id": 155,
+        "titulo": "Museo Frida Kahlo (La Casa Azul)",
+        "texto": "Museo Frida Kahlo (La Casa Azul)*. No solo fue hogar de Frida Kahlo; aquí se reunieron André Breton, León Trotsky y buena parte del círculo artístico internacional de los años 30.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Frida+Kahlo+Londres+247+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Londres 247, Del Carmen, Coyoacán"
+      },
+      {
+        "id": 156,
+        "titulo": "Casa Estudio Diego Rivera y Frida Kahlo",
+        "texto": "Casa Estudio Diego Rivera y Frida Kahlo*. Diseñada por Juan O’Gorman en 1931, fue uno de los primeros ejemplos del funcionalismo radical en el continente.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Casa+Estudio+Diego+Rivera+y+Frida+Kahlo+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Diego Rivera s/n, San Ángel Inn"
+      },
+      {
+        "id": 157,
+        "titulo": "Mercado de Coyoacán",
+        "texto": "Mercado de Coyoacán*. Abierto desde 1921, es uno de los mercados más antiguos del sur.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mercado+de+Coyoacán+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ignacio Allende s/n, Del Carmen, Coyoacán"
+      },
+      {
+        "id": 158,
+        "titulo": "Museo Anahuacalli",
+        "texto": "Museo Anahuacalli*. Obra de Diego Rivera para albergar su colección prehispánica; un manifiesto que plantea al México antiguo como raíz de la modernidad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Anahuacalli+Coyoacán+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Museo 150, San Pablo Tepetlapa, Coyoacán"
+      },
+      {
+        "id": 159,
+        "titulo": "Capilla de las Capuchinas",
+        "texto": "Capilla de las Capuchinas*. Construida por Luis Barragán, es un espacio donde la luz cambia radicalmente a lo largo del día.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Capilla+de+las+Capuchinas+Miguel+Hidalgo+43+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Miguel Hidalgo 43, Colonia Tlalpan"
+      },
+      {
+        "id": 160,
+        "titulo": "Exposición Patrimonio",
+        "texto": "Exposición Patrimonio. Agua y fuego de Santiago Arau*. Visítala en el Museo Universitario de Ciencias y Arte de la UNAM.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Universitario+de+Ciencias+y+Arte+UNAM+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Circuito Interior Universitario, Escolar s/n, C.U., Coyoacán"
+      },
+      {
+        "id": 161,
+        "titulo": "Espacio escultórico",
+        "texto": "Espacio escultórico*. Anillo monumental de esculturas abstractas colocado directamente sobre lava.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Espacio+escultórico+UNAM+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Centro Universitario de Teatro (CUT), Mario de la Cueva, Universitaria"
+      },
+      {
+        "id": 162,
+        "titulo": "Ruta de la Amistad",
+        "texto": "Ruta de la Amistad* Conjunto de 19 esculturas monumentales instaladas a lo largo del Periférico Sur para los Juegos Olímpicos de 1968. Artistas de distintos países crearon obras abstractas como gesto simbólico de fraternidad internacional.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ruta+de+la+Amistad+Periférico+Sur+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "A lo largo de Periférico Sur"
+      },
+      {
+        "id": 163,
+        "titulo": "Plaza San Jacinto",
+        "texto": "Plaza San Jacinto* Antiguo centro del pueblo de San Ángel, sobrevivió a la expansión urbana manteniendo escala y carácter. Aquí se cruzan convento, casonas virreinales y tradición.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Plaza+San+Jacinto+San+Ángel+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "San Ángel TNT, San Ángel"
+      },
+      {
+        "id": 164,
+        "titulo": "Tetetlán",
+        "texto": "Tetetlán* Centro cultural en las antiguas caballerizas de Casa Pedregal con piso de vidrio sobre la roca volcánica. Tienen una de las mejores selecciones de mezcales de la ciudad.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tetetlán+Av+de+Las+Fuentes+180+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. de Las Fuentes 180 local B"
+      },
+      {
+        "id": 165,
+        "titulo": "Papalotl, casa del pan",
+        "texto": "Papalotl, casa del pan* Panadería artesanal y cocina orgánica dentro de un jardín. Las lunas de nuez.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Papalotl+casa+del+pan+Av+San+Fernando+765+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Av. San Fernando 765"
+      },
+      {
+        "id": 166,
+        "titulo": "El Paso de las Mujeres Bellas",
+        "texto": "El Paso de las Mujeres Bellas* Mariscos en el Mercado Lázaro Cárdenas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Paso+de+las+Mujeres+Bellas+Mercado+Lázaro+Cárdenas+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Adolfo Prieto Local 450, Benito Juárez, Del Valle (Mercado Lázaro Cárdenas)"
+      },
+      {
+        "id": 167,
+        "titulo": "Parrilla Paraíso",
+        "texto": "Parrilla Paraíso* Cocina de brasa.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Parrilla+Paraíso+Santa+Úrsula+34+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Santa Úrsula 34, Sta Úrsula Xitla"
+      },
+      {
+        "id": 168,
+        "titulo": "Tortas El Capricho",
+        "texto": "Tortas El Capricho*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tortas+El+Capricho+Augusto+Rodin+407+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Cda. Augusto Rodin 407, Insurgentes Mixcoac"
+      },
+      {
+        "id": 169,
+        "titulo": "Mariscos La Perla Escondida",
+        "texto": "Mariscos La Perla Escondida*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Mariscos+La+Perla+Escondida+Coyoacán+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Mercado 89, Del Carmen, Coyoacán"
+      },
+      {
+        "id": 170,
+        "titulo": "Las Dietéticas de Coyoacán",
+        "texto": "Las Dietéticas de Coyoacán* Gorditas y quesadillas en el Mercado de Antojitos de Coyoacán.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Las+Dietéticas+de+Coyoacán+Mercado+de+Antojitos+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Local 10, Higuera 10, Coyoacán (Mercado de Antojitos de Coyoacán)"
+      },
+      {
+        "id": 171,
+        "titulo": "Tostadas La Chaparrita",
+        "texto": "Tostadas La Chaparrita*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tostadas+La+Chaparrita+Ignacio+Allende+185+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Ignacio Allende 185, Del Carmen"
+      },
+      {
+        "id": 172,
+        "titulo": "Esquites de la Familia Téllez",
+        "texto": "Esquites de la Familia Téllez*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Esquites+de+la+Familia+Téllez+Izamal+138+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Izamal 138, Lomas de Padierna / Tizimin 253 A, Héroes de Padierna"
+      },
+      {
+        "id": 173,
+        "titulo": "Gorditas La Vikina",
+        "texto": "Gorditas La Vikina*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Gorditas+La+Vikina+Calzada+del+Hueso+3196+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Calzada del Hueso 3196 local 1, Coapa"
+      },
+      {
+        "id": 174,
+        "titulo": "Tacos de lengua Don Pepe",
+        "texto": "Tacos de lengua Don Pepe*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+de+lengua+Don+Pepe+Insurgentes+Sur+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Insurgentes Sur, Limantitla esquina Santa Úrsula Xitla, Tlalpan"
+      },
+      {
+        "id": 175,
+        "titulo": "Tacos Los Gemelos",
+        "texto": "Tacos Los Gemelos*",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tacos+Los+Gemelos+Isidro+Fabela+Tlalpan+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Nte. 1, Isidro Fabela, Tlalpan"
+      },
+      {
+        "id": 176,
+        "titulo": "El Remolkito de Sirloin",
+        "texto": "El Remolkito de Sirloin*",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+Remolkito+de+Sirloin+Anillo+Periférico+5460+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Anillo Periférico 5460, Olímpica"
+      },
+      {
+        "id": 177,
+        "titulo": "Café Passmar",
+        "texto": "Café Passmar* En el Mercado Lázaro Cárdenas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Café+Passmar+Mercado+Lázaro+Cárdenas+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Adolfo Prieto Local 450, Benito Juárez, Del Valle (Mercado Lázaro Cárdenas)"
+      },
+      {
+        "id": 178,
+        "titulo": "Chiandoni",
+        "texto": "Chiandoni* Imperdible su Pêche melba y banana split.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Chiandoni+Pensilvania+255+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Pensilvania 255, Nápoles"
+      },
+      {
+        "id": 179,
+        "titulo": "El secreto, dulces típicos",
+        "texto": "El secreto, dulces típicos* Una selección de dulces regionales y confitería tradicional mexicana. Empacan tus compras con papel de china o paliacates.",
+        "url": "https://www.google.com/maps/search/?api=1&query=El+secreto+dulces+típicos+Av+Altavista+131+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Av. Altavista 131, San Ángel Inn"
+      },
+      {
+        "id": 180,
+        "titulo": "Tortas Catakil",
+        "texto": "Tortas Catakil Estas tortas las encontrarás a un costado de la Estela de Luz, eso sí, ve por la mañana, pues están abiertas hasta las 12 pm.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Tortas+Catakil+Estela+de+Luz+CDMX",
+        "etiqueta": "comida",
+        "direccion": "Av. Lieja 7 esquina Av. Paseo de la Reforma, Pasaje Comercial Chapultepec"
+      },
+      {
+        "id": 181,
+        "titulo": "Castillo de Chapultepec",
+        "texto": "Castillo de Chapultepec Único castillo real en Norteamérica; antigua residencia de Maximiliano y Carlota, y hogar presidencial hasta 1939.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Castillo+de+Chapultepec+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Bosque de Chapultepec"
+      },
+      {
+        "id": 182,
+        "titulo": "Cárcamo de Dolores",
+        "texto": "Cárcamo de Dolores* Antigua pieza clave del sistema hidráulico decorada con un mural sumergido de Diego Rivera; el punto exacto donde se cruzan arte e ingeniería.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Cárcamo+de+Dolores+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Bosque de Chapultepec"
+      },
+      {
+        "id": 183,
+        "titulo": "Jardín Botánico de Chapultepec",
+        "texto": "Jardín Botánico de Chapultepec Zona menos transitada del bosque con especies nativas y senderos tranquilos.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Jardín+Botánico+de+Chapultepec+CDMX",
+        "etiqueta": "entretenimiento",
+        "direccion": "Bosque de Chapultepec"
+      },
+      {
+        "id": 184,
+        "titulo": "LagoAlgo",
+        "texto": "LagoAlgo* Antiguo restaurante modernista convertido en espacio de arte contemporáneo (galería) frente al Lago Mayor.",
+        "url": "https://www.google.com/maps/search/?api=1&query=LagoAlgo+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Bosque de Chapultepec (Frente al Lago Mayor)"
+      },
+      {
+        "id": 185,
+        "titulo": "Museo Nacional de Antropología",
+        "texto": "Museo Nacional de Antropología Es el Museo más visitado de Latinoamérica y referente mundial. Resguarda la Piedra del Sol (conocida como “Calendario Azteca”) y tesoros mesoamericanos bajo su icónico “Paraguas”, una obra maestra de ingeniería y simbolismo.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Nacional+de+Antropología+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. Paseo de la Reforma s/n, Polanco"
+      },
+      {
+        "id": 186,
+        "titulo": "Museo de Arte Moderno (MAM)",
+        "texto": "Museo de Arte Moderno (MAM) El arte del siglo XX más allá del muralismo. Hogar de “Las dos Fridas” de Frida Kahlo y de un magnífico jardín de esculturas.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+de+Arte+Moderno+MAM+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. Paseo de la Reforma, s/n, Bosque de Chapultepec I Secc."
+      },
+      {
+        "id": 187,
+        "titulo": "Museo Tamayo",
+        "texto": "Museo Tamayo Fundado por Rufino Tamayo para mostrar arte contemporáneo internacional en México. Arquitectura brutalista integrada al paisaje de Chapultepec.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Museo+Tamayo+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. Paseo de la Reforma 51, Bosque de Chapultepec I Secc."
+      },
+      {
+        "id": 188,
+        "titulo": "Diana Cazadora",
+        "texto": "Diana Cazadora Escultura de 1942 que generó polémica por su desnudez.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Fuente+de+la+Diana+Cazadora+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. Paseo de la Reforma"
+      },
+      {
+        "id": 189,
+        "titulo": "Ángel de la Independencia",
+        "texto": "Ángel de la Independencia Ícono máximo de Paseo de la Reforma inaugurado en 1910. Resguarda los restos de los héroes de la Independencia y es el epicentro de las celebraciones y movimientos sociales del país.",
+        "url": "https://www.google.com/maps/search/?api=1&query=Ángel+de+la+Independencia+CDMX",
+        "etiqueta": "cultura",
+        "direccion": "Av. Paseo de la Reforma"
+      }
+    ]
+
+    var puntos = [
+      {
+        "id": 180,
+        "coord": [2203, 553]
+      },
+      {
+        "id": 14,
+        "coord": [1832, 64]
+      },
+      {
+        "id": 13,
+        "coord": [1852, 73]
+      },
+      {
+        "id": 8,
+        "coord": [1811, 116]
+      },
+      {
+        "id": 9,
+        "coord": [1824, 122]
+      },
+      {
+        "id": 5,
+        "coord": [1838, 151]
+      },
+      {
+        "id": 7,
+        "coord": [1834, 169]
+      },
+      {
+        "id": 3,
+        "coord": [1780, 198]
+      },
+      {
+        "id": 11,
+        "coord": [1856, 194]
+      },
+      {
+        "id": 16,
+        "coord": [1904, 214]
+      },
+      {
+        "id": 2,
+        "coord": [1931, 231]
+      },
+      {
+        "id": 15,
+        "coord": [1925, 245]
+      },
+      {
+        "id": 20,
+        "coord": [1928, 258]
+      },
+      {
+        "id": 6,
+        "coord": [1942, 264]
+      },
+      {
+        "id": 21,
+        "coord": [1928, 274]
+      },
+      {
+        "id": 12,
+        "coord": [1915, 272]
+      },
+      {
+        "id": 22,
+        "coord": [1927, 289]
+      },
+      {
+        "id": 1,
+        "coord": [1894, 288]
+      },
+      {
+        "id": 19,
+        "coord": [1890, 308]
+      },
+      {
+        "id": 4,
+        "coord": [1876, 308]
+      },
+      {
+        "id": 23,
+        "coord": [1853, 265]
+      },
+      {
+        "id": 17,
+        "coord": [1803, 281]
+      },
+      {
+        "id": 38,
+        "coord": [1931, 510]
+      },
+      {
+        "id": 38,
+        "coord": [1770, 519]
+      },
+      {
+        "id": 37,
+        "coord": [1743, 517]
+      },
+      {
+        "id": 188,
+        "coord": [2268, 660]
+      },
+      {
+        "id": 189,
+        "coord": [2326, 772]
+      },
+      {
+        "id": 73,
+        "coord": [2405, 945]
+      },
+      {
+        "id": 75,
+        "coord": [2351, 1021]
+      },
+      {
+        "id": 81,
+        "coord": [2343, 1043]
+      },
+      {
+        "id": 78,
+        "coord": [2339, 1029]
+      },
+      {
+        "id": 150,
+        "coord": [2322, 1065]
+      },
+      {
+        "id": 77,
+        "coord": [2315, 1083]
+      },
+      {
+        "id": 74,
+        "coord": [2360, 1135]
+      },
+      {
+        "id": 72,
+        "coord": [2345, 1130]
+      },
+      {
+        "id": 83,
+        "coord": [2327, 1106]
+      },
+      {
+        "id": 89,
+        "coord": [2309, 1049]
+      },
+      {
+        "id": 84,
+        "coord": [2301, 1064]
+      },
+      {
+        "id": 70,
+        "coord": [2279, 1093]
+      },
+      {
+        "id": 150,
+        "coord": [2291, 1025]
+      },
+      {
+        "id": 76,
+        "coord": [2307, 994]
+      },
+      {
+        "id": 79,
+        "coord": [2312, 971]
+      },
+      {
+        "id": 71,
+        "coord": [2277, 967]
+      },
+      {
+        "id": 69,
+        "coord": [2273, 1230]
+      },
+      {
+        "id": 88,
+        "coord": [2269, 1040]
+      },
+      {
+        "id": 87,
+        "coord": [2266, 1024]
+      },
+      {
+        "id": 90,
+        "coord": [2253, 1024]
+      },
+      {
+        "id": 85,
+        "coord": [2267, 1008]
+      },
+      {
+        "id": 86,
+        "coord": [2262, 995]
+      },
+      {
+        "id": 28,
+        "coord": [2216, 1028]
+      },
+      {
+        "id": 53,
+        "coord": [2198, 1038]
+      },
+      {
+        "id": 40,
+        "coord": [2203, 997]
+      },
+      {
+        "id": 54,
+        "coord": [2139, 986]
+      },
+      {
+        "id": 32,
+        "coord": [2129, 911]
+      },
+      {
+        "id": 30,
+        "coord": [2168, 877]
+      },
+      {
+        "id": 31,
+        "coord": [2177, 848]
+      },
+      {
+        "id": 57,
+        "coord": [2118, 1004]
+      },
+      {
+        "id": 29,
+        "coord": [2105, 1011]
+      },
+      {
+        "id": 58,
+        "coord": [2112, 1022]
+      },
+      {
+        "id": 64,
+        "coord": [2128, 1081]
+      },
+      {
+        "id": 41,
+        "coord": [2111, 1084]
+      },
+      {
+        "id": 54,
+        "coord": [2100, 1125]
+      },
+      {
+        "id": 68,
+        "coord": [2142, 1217]
+      },
+      {
+        "id": 67,
+        "coord": [2049, 1199]
+      },
+      {
+        "id": 50,
+        "coord": [2057, 1066]
+      },
+      {
+        "id": 150,
+        "coord": [2031, 1062]
+      },
+      {
+        "id": 62,
+        "coord": [2076, 1040]
+      },
+      {
+        "id": 52,
+        "coord": [1944, 1091]
+      },
+      {
+        "id": 42,
+        "coord": [2010, 982]
+      },
+      {
+        "id": 43,
+        "coord": [2082, 955]
+      },
+      {
+        "id": 63,
+        "coord": [2071, 941]
+      },
+      {
+        "id": 44,
+        "coord": [2073, 899]
+      },
+      {
+        "id": 51,
+        "coord": [2013, 839]
+      },
+      {
+        "id": 48,
+        "coord": [2123, 795]
+      },
+      {
+        "id": 61,
+        "coord": [2114, 766]
+      },
+      {
+        "id": 25,
+        "coord": [2143, 788]
+      },
+      {
+        "id": 39,
+        "coord": [2128, 725]
+      },
+      {
+        "id": 27,
+        "coord": [2056, 718]
+      },
+      {
+        "id": 24,
+        "coord": [2088, 683]
+      },
+      {
+        "id": 60,
+        "coord": [1921, 773]
+      },
+      {
+        "id": 46,
+        "coord": [1896, 802]
+      },
+      {
+        "id": 36,
+        "coord": [1880, 799]
+      },
+      {
+        "id": 34,
+        "coord": [1832, 823]
+      },
+      {
+        "id": 59,
+        "coord": [1859, 732]
+      },
+      {
+        "id": 35,
+        "coord": [1853, 662]
+      },
+      {
+        "id": 47,
+        "coord": [1771, 796]
+      },
+      {
+        "id": 45,
+        "coord": [1774, 595]
+      },
+      {
+        "id": 49,
+        "coord": [1757, 605]
+      },
+      {
+        "id": 26,
+        "coord": [1715, 616]
+      },
+      {
+        "id": 33,
+        "coord": [1694, 632]
+      },
+      {
+        "id": 18,
+        "coord": [1868, 135]
+      },
+      {
+        "id": 55,
+        "coord": [2006, 694]
+      },
+      {
+        "id": 118,
+        "coord": [1512, 266]
+      },
+      {
+        "id": 121,
+        "coord": [1310, 244]
+      },
+      {
+        "id": 108,
+        "coord": [1414, 510]
+      },
+      {
+        "id": 105,
+        "coord": [1426, 554]
+      },
+      {
+        "id": 115,
+        "coord": [1454, 604]
+      },
+      {
+        "id": 92,
+        "coord": [1374, 595]
+      },
+      {
+        "id": 107,
+        "coord": [1348, 567]
+      },
+      {
+        "id": 109,
+        "coord": [1315, 540]
+      },
+      {
+        "id": 91,
+        "coord": [1322, 788]
+      },
+      {
+        "id": 104,
+        "coord": [1260, 576]
+      },
+      {
+        "id": 96,
+        "coord": [1190, 521]
+      },
+      {
+        "id": 113,
+        "coord": [1234, 842]
+      },
+      {
+        "id": 110,
+        "coord": [1348, 921]
+      },
+      {
+        "id": 106,
+        "coord": [1343, 997]
+      },
+      {
+        "id": 112,
+        "coord": [1322, 1069]
+      },
+      {
+        "id": 116,
+        "coord": [1300, 1240]
+      },
+      {
+        "id": 111,
+        "coord": [1282, 984]
+      },
+      {
+        "id": 99,
+        "coord": [1025, 706]
+      },
+      {
+        "id": 114,
+        "coord": [1019, 533]
+      },
+      {
+        "id": 100,
+        "coord": [1066, 637]
+      },
+      {
+        "id": 97,
+        "coord": [945, 332]
+      },
+      {
+        "id": 98,
+        "coord": [1054, 433]
+      },
+      {
+        "id": 101,
+        "coord": [1133, 440]
+      },
+      {
+        "id": 94,
+        "coord": [1115, 371]
+      },
+      {
+        "id": 102,
+        "coord": [1133, 347]
+      },
+      {
+        "id": 95,
+        "coord": [1111, 347]
+      },
+      {
+        "id": 117,
+        "coord": [1110, 320]
+      },
+      {
+        "id": 93,
+        "coord": [1134, 314]
+      },
+      {
+        "id": 103,
+        "coord": [1118, 293]
+      },
+      {
+        "id": 140,
+        "coord": [556, 170]
+      },
+      {
+        "id": 149,
+        "coord": [535, 182]
+      },
+      {
+        "id": 147,
+        "coord": [526, 378]
+      },
+      {
+        "id": 152,
+        "coord": [488, 393]
+      },
+      {
+        "id": 144,
+        "coord": [537, 421]
+      },
+      {
+        "id": 145,
+        "coord": [650, 386]
+      },
+      {
+        "id": 141,
+        "coord": [562, 534]
+      },
+      {
+        "id": 139,
+        "coord": [653, 704]
+      },
+      {
+        "id": 143,
+        "coord": [704, 769]
+      },
+      {
+        "id": 142,
+        "coord": [600, 799]
+      },
+      {
+        "id": 148,
+        "coord": [545, 714]
+      },
+      {
+        "id": 136,
+        "coord": [473, 717]
+      },
+      {
+        "id": 135,
+        "coord": [516, 817]
+      },
+      {
+        "id": 151,
+        "coord": [461, 802]
+      },
+      {
+        "id": 146,
+        "coord": [656, 873]
+      },
+      {
+        "id": 187,
+        "coord": [340, 1015]
+      },
+      {
+        "id": 186,
+        "coord": [219, 1088]
+      },
+      {
+        "id": 181,
+        "coord": [119, 1003]
+      },
+      {
+        "id": 183,
+        "coord": [242, 1011]
+      },
+      {
+        "id": 185,
+        "coord": [308, 858]
+      }
+    ]
+
+    var puntoBanco = [
+      [2201, 882],
+      [1286, 200],
+      [1134, 926],
+      [989, 962],
+      [924, 679],
+      [952, 287],
+      [463, 680],
+      [592, 1016]
+    ]
+
+    var puntoWifi = [
+      [1735, 142],
+      [1720, 355],
+      [1670, 495],
+      [1672, 510],
+      [1684, 648],
+      [1682, 746],
+      [1696, 754],
+      [1794, 707],
+      [1686, 1121],
+      [1722, 1109],
+      [1837, 749],
+      [1861, 638],
+      [1863, 669],
+      [1892, 665],
+      [1903, 675],
+      [1912, 819],
+      [1888, 980],
+      [1978, 842],
+      [2000, 776],
+      [1989, 710],
+      [2044, 665],
+      [2155, 657],
+      [2181, 779],
+      [2232, 910],
+      [2341, 962],
+      [2181, 955],
+      [2097, 878],
+      [2094, 1005],
+      [2027, 1020],
+      [1949, 1024],
+      [2096, 1164],
+      [2117, 1175],
+      [1153, 559],
+      [1206, 552],
+      [1302, 499],
+      [333, 864],
+      [481, 1063],
+    ]
+
+    var typeColors = {
+      comida: '#ff6b6b',
+      cultura: '#3b82f6',
+      compras: '#10b981',
+      entretenimiento: '#a855f7',
+      bancos: '#138D75',
+      wifi: '#E74C3C',
+      otro: '#888888'
+    }
+
+    function buildPopupContent(titulo = null, texto = null, url = null, direccion= null) {
+      var html = `<div class="popup-title">${titulo}</div>`;
+      var descripcion = texto;
+
+      if (descripcion) html += `<div class="popup-description">${descripcion}</div>`;
+
+      if (direccion) {
+        html += `<hr style="border:none;border-top:1px solid #cacaca; margin: 10px 0;">`;
+        html += `<div class="popup-address">📍 ${direccion}</div>`;
+      }
+
+      if (url) {
+        html += `<a class="popup-maps-link" href="${url}" target="_blank" rel="noopener noreferrer">📌 Abrir en Google Maps</a>`;
+      }
+      return html;
+    }
+
+    var allCircles = [];
+
+    puntos.forEach(function (punto) {
+      var infoLugar = datosLugares.find(function (lugar) {
+        return lugar.id === punto.id;
+      });
+
+      var titulo = infoLugar ? infoLugar.titulo : `Punto ${punto.id}`;
+      var texto = infoLugar ? infoLugar.texto : 'Sin descripción.';
+      var url = infoLugar ? infoLugar.url : null;
+      var tipoEtiqueta = infoLugar ? infoLugar.etiqueta : 'otro';
+      var direccion = infoLugar ? infoLugar.direccion : null;
+      var textoPopup = buildPopupContent(titulo, texto, url, direccion);
+      var circle = L.circle(punto.coord, { weight: 1 }).bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: tipoEtiqueta,
+        coord: punto.coord
+      });
+    });
+
+    puntoBanco.forEach(function (coord, index) {
+      var textoPopup = buildPopupContent('Banco Azteca');
+      var circle = L.circle(coord, { weight: 1 })
+        .bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: 'bancos',
+        coord: coord
+      });
+    });
+
+    puntoWifi.forEach(function (coord, index) {
+      var textoPopup = buildPopupContent('Wifi TotalPlay');
+      var circle = L.circle(coord, { weight: 1 }).bindPopup(textoPopup, { maxWidth: 300, minWidth: 220 });
+
+      allCircles.push({
+        circle: circle,
+        type: 'wifi',
+        coord: coord
+      });
+    });
+
+    var filterButtons = document.querySelectorAll('.filter-btn');
+
+    function resetCircleStyles() {
+      allCircles.forEach(function (item) {
+        var color = typeColors[item.type] || typeColors['otro'];
+        item.circle.setStyle({
+          fillColor: 'transparent',color: 'transparent',weight: 1,radius: 12,fillOpacity: 0.8
+        });
+        if (!map.hasLayer(item.circle)) {
+          item.circle.addTo(map);
+        }
+      });
+      map.fitBounds(bounds);
+    }
+
+    function highlightFiltered(filterType) {
+      var matchingCoords = [];
+      var cColor = typeColors[filterType] || '#f5a623';
+
+      allCircles.forEach(function (item) {
+        if (item.type === filterType) {
+
+          item.circle.setStyle({
+            fillColor: cColor,  color: cColor,  weight: 2,  radius: 16,  fillOpacity: 0.9
+          });
+          if (!map.hasLayer(item.circle)) {
+            item.circle.addTo(map);
+          }
+          matchingCoords.push(item.coord);
+        } else {
+
+          if (map.hasLayer(item.circle)) {
+            map.removeLayer(item.circle);
+          }
+        }
+      });
+
+      if (matchingCoords.length > 0) {
+        var filterBounds = L.latLngBounds(matchingCoords);
+        map.fitBounds(filterBounds, { padding: [60, 60], maxZoom: 1 });
+      }
+    }
+
+    resetCircleStyles();
+
+    filterButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+
+        filterButtons.forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+
+        var activeFilter = btn.getAttribute('data-type');
+
+        if (activeFilter === 'all') {
+          resetCircleStyles();
+        } else {
+          highlightFiltered(activeFilter);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
