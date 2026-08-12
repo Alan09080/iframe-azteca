@@ -4,1355 +4,559 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NEXUS — Digital Experience</title>
+
+    <title>Iframe Azteca™</title>
 
     <style>
-        /* =========================
-       RESET
-    ========================== */
-
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
         }
 
         body {
-            font-family: Inter, Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
             background:
-                radial-gradient(circle at 20% 20%, rgba(98, 0, 255, 0.15), transparent 35%),
-                radial-gradient(circle at 80% 20%, rgba(0, 200, 255, 0.12), transparent 35%),
-                radial-gradient(circle at 50% 90%, rgba(255, 0, 140, 0.1), transparent 40%),
-                #050505;
-            color: white;
-            overflow-x: hidden;
-        }
+                radial-gradient(circle at 20% 20%, #ff00aa55, transparent 30%),
+                radial-gradient(circle at 80% 30%, #00e5ff55, transparent 35%),
+                radial-gradient(circle at 50% 90%, #7b2cff55, transparent 35%),
+                #080811;
 
-        ::selection {
-            background: #8a2be2;
             color: white;
         }
-
-        /* =========================
-       BACKGROUND
-    ========================== */
 
         .background-grid {
             position: fixed;
             inset: 0;
-            pointer-events: none;
-            z-index: -5;
 
             background-image:
-                linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+                linear-gradient(rgba(255, 255, 255, .04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px);
 
-            background-size: 45px 45px;
+            background-size: 40px 40px;
 
-            mask-image: linear-gradient(to bottom, black, transparent 90%);
-        }
+            animation: moveGrid 12s linear infinite;
 
-        .orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(100px);
-            opacity: .5;
             pointer-events: none;
-            z-index: -4;
-            animation: orbMove 14s ease-in-out infinite alternate;
         }
 
-        .orb.one {
-            width: 500px;
-            height: 500px;
-            background: #6f00ff;
-            top: -150px;
-            left: -150px;
+        @keyframes moveGrid {
+            from {
+                transform: translate(0, 0);
+            }
+
+            to {
+                transform: translate(40px, 40px);
+            }
         }
 
-        .orb.two {
-            width: 450px;
-            height: 450px;
+        .blob {
+            position: fixed;
+
+            width: 400px;
+            height: 400px;
+
+            border-radius: 50%;
+
+            filter: blur(100px);
+
+            opacity: .45;
+
+            animation: blobMove 10s ease-in-out infinite alternate;
+
+            pointer-events: none;
+        }
+
+        .blob.one {
+            background: #ff0099;
+            left: -100px;
+            top: -100px;
+        }
+
+        .blob.two {
             background: #00c8ff;
-            top: 30%;
-            right: -200px;
+            right: -120px;
+            bottom: -100px;
+
             animation-delay: -5s;
         }
 
-        .orb.three {
-            width: 350px;
-            height: 350px;
-            background: #ff007a;
-            bottom: -100px;
-            left: 35%;
-            animation-delay: -9s;
-        }
-
-        @keyframes orbMove {
+        @keyframes blobMove {
             from {
-                transform: translate3d(0, 0, 0) scale(1);
+                transform: translate(0, 0) scale(1);
             }
 
             to {
-                transform: translate3d(100px, 70px, 0) scale(1.25);
+                transform: translate(100px, 80px) scale(1.2);
             }
         }
 
-        #particles {
-            position: fixed;
-            inset: 0;
-            z-index: -3;
-            pointer-events: none;
-        }
+        .card {
+            width: min(900px, 92vw);
 
-        .cursor-glow {
-            position: fixed;
-            width: 450px;
-            height: 450px;
-
-            border-radius: 50%;
-
-            background:
-                radial-gradient(circle,
-                    rgba(117, 65, 255, 0.14),
-                    transparent 65%);
-
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: -2;
-
-            transition:
-                left 0.08s linear,
-                top 0.08s linear;
-        }
-
-        /* =========================
-       NAV
-    ========================== */
-
-        nav {
-            position: fixed;
-            top: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-
-            width: min(1100px, calc(100% - 32px));
-
-            height: 70px;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 24px;
-
-            border: 1px solid rgba(255, 255, 255, .1);
-            border-radius: 22px;
-
-            background: rgba(10, 10, 15, 0.5);
-            backdrop-filter: blur(20px);
-
-            z-index: 100;
-
-            box-shadow:
-                0 20px 60px rgba(0, 0, 0, .3),
-                inset 0 1px rgba(255, 255, 255, .05);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            font-weight: 900;
-            letter-spacing: 3px;
-            font-size: 18px;
-        }
-
-        .logo-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-
-            background: linear-gradient(135deg, #7c3cff, #00d9ff);
-
-            box-shadow:
-                0 0 10px #7c3cff,
-                0 0 30px #00d9ff;
-
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            50% {
-                transform: scale(1.5);
-                opacity: .6;
-            }
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 28px;
-        }
-
-        .nav-links a {
-            color: #aaa;
-            text-decoration: none;
-            font-size: 14px;
-            transition: .3s ease;
-        }
-
-        .nav-links a:hover {
-            color: white;
-            text-shadow: 0 0 15px white;
-        }
-
-        /* =========================
-       HERO
-    ========================== */
-
-        .hero {
-            min-height: 100vh;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            text-align: center;
-
-            padding: 130px 20px 60px;
-        }
-
-        .hero-content {
-            max-width: 1000px;
-            position: relative;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-
-            padding: 9px 16px;
-
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, .12);
-
-            background: rgba(255, 255, 255, .05);
-            backdrop-filter: blur(15px);
-
-            font-size: 13px;
-            color: #bbb;
-
-            margin-bottom: 30px;
-
-            animation: fadeUp 1s both;
-        }
-
-        .badge span {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #4cff91;
-
-            box-shadow: 0 0 15px #4cff91;
-        }
-
-        h1 {
-            font-size: clamp(65px, 11vw, 150px);
-            line-height: .82;
-
-            letter-spacing: -8px;
-
-            font-weight: 950;
-
-            animation: fadeUp 1s .1s both;
-        }
-
-        .gradient-text {
-            background:
-                linear-gradient(120deg,
-                    #ffffff 10%,
-                    #b37cff 35%,
-                    #44dfff 60%,
-                    #ff67bd 85%,
-                    #ffffff 100%);
-
-            background-size: 200% auto;
-
-            -webkit-background-clip: text;
-            background-clip: text;
-
-            color: transparent;
-
-            animation:
-                gradientMove 5s linear infinite,
-                fadeUp 1s .1s both;
-        }
-
-        @keyframes gradientMove {
-            to {
-                background-position: 200% center;
-            }
-        }
-
-        .hero p {
-            max-width: 650px;
-
-            margin: 35px auto;
-
-            color: #999;
-
-            font-size: 18px;
-            line-height: 1.7;
-
-            animation: fadeUp 1s .2s both;
-        }
-
-        .hero-actions {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-
-            animation: fadeUp 1s .3s both;
-        }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .button {
-            position: relative;
-            overflow: hidden;
-
-            padding: 15px 26px;
-
-            border-radius: 14px;
-
-            border: 1px solid rgba(255, 255, 255, .1);
-
-            text-decoration: none;
-            color: white;
-
-            font-weight: 700;
-            font-size: 14px;
-
-            transition:
-                transform .25s ease,
-                box-shadow .25s ease;
-        }
-
-        .button:hover {
-            transform: translateY(-4px);
-        }
-
-        .button.primary {
-            background:
-                linear-gradient(135deg,
-                    #6c37ff,
-                    #008cff);
-
-            box-shadow:
-                0 10px 40px rgba(85, 54, 255, .35);
-        }
-
-        .button.primary:hover {
-            box-shadow:
-                0 15px 60px rgba(85, 54, 255, .55);
-        }
-
-        .button.secondary {
-            background: rgba(255, 255, 255, .05);
-            backdrop-filter: blur(10px);
-        }
-
-        .button::after {
-            content: "";
-
-            position: absolute;
-
-            width: 80px;
-            height: 200px;
-
-            background: rgba(255, 255, 255, .25);
-
-            transform: rotate(30deg);
-
-            top: -70px;
-            left: -100px;
-
-            transition: .5s;
-        }
-
-        .button:hover::after {
-            left: 130%;
-        }
-
-        /* =========================
-       FLOATING OBJECT
-    ========================== */
-
-        .hero-object {
-            margin: 90px auto 0;
-
-            width: min(700px, 90vw);
-            height: 280px;
-
-            perspective: 1000px;
-
-            animation: fadeUp 1.2s .5s both;
-        }
-
-        .floating-card {
-            width: 100%;
-            height: 100%;
-
-            border-radius: 28px;
+            padding: 50px 35px;
 
             border: 1px solid rgba(255, 255, 255, .13);
+            border-radius: 30px;
 
             background:
                 linear-gradient(135deg,
                     rgba(255, 255, 255, .08),
-                    rgba(255, 255, 255, .02));
+                    rgba(255, 255, 255, .025));
 
-            backdrop-filter: blur(25px);
+            backdrop-filter: blur(20px);
 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
 
             position: relative;
-            overflow: hidden;
-
-            transform-style: preserve-3d;
+            z-index: 2;
 
             box-shadow:
-                0 50px 100px rgba(0, 0, 0, .5),
+                0 40px 120px rgba(0, 0, 0, .55),
                 inset 0 1px rgba(255, 255, 255, .1);
 
-            animation: floating 5s ease-in-out infinite;
+            animation: cardFloat 4s ease-in-out infinite;
         }
 
-        @keyframes floating {
+        @keyframes cardFloat {
 
             0%,
             100% {
-                transform:
-                    translateY(0) rotateX(2deg) rotateY(-3deg);
+                transform: translateY(0);
             }
 
             50% {
-                transform:
-                    translateY(-20px) rotateX(-2deg) rotateY(3deg);
+                transform: translateY(-12px);
             }
         }
 
-        .floating-card::before {
-            content: "";
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
 
-            position: absolute;
+            padding: 8px 14px;
 
-            width: 500px;
-            height: 500px;
+            border-radius: 999px;
+
+            background: rgba(75, 255, 140, .09);
+
+            border: 1px solid rgba(75, 255, 140, .2);
+
+            font-size: 13px;
+
+            margin-bottom: 28px;
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
 
             border-radius: 50%;
 
-            background:
-                conic-gradient(from 0deg,
-                    transparent,
-                    #9f4cff,
-                    transparent,
-                    #00d9ff,
-                    transparent);
+            background: #4bff8c;
 
-            animation: rotate 7s linear infinite;
+            box-shadow: 0 0 20px #4bff8c;
 
-            filter: blur(35px);
-            opacity: .5;
+            animation: blink 1s infinite;
         }
 
-        @keyframes rotate {
-            to {
-                transform: rotate(360deg);
+        @keyframes blink {
+            50% {
+                opacity: .25;
             }
         }
 
-        .floating-card-inner {
-            width: calc(100% - 2px);
-            height: calc(100% - 2px);
-
-            border-radius: 27px;
-
-            position: absolute;
-
-            background:
-                linear-gradient(140deg,
-                    rgba(10, 10, 15, .92),
-                    rgba(15, 15, 25, .84));
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .floating-title {
-            position: relative;
-            z-index: 5;
-
-            font-size: clamp(40px, 8vw, 90px);
-
-            font-weight: 900;
+        h1 {
+            font-size: clamp(45px, 8vw, 100px);
+            line-height: .9;
 
             letter-spacing: -5px;
 
-            text-shadow:
-                0 0 50px rgba(150, 70, 255, .7);
+            margin-bottom: 25px;
         }
 
-        /* =========================
-       SECTION
-    ========================== */
-
-        section {
-            max-width: 1200px;
-            margin: auto;
-
-            padding: 120px 24px;
-        }
-
-        .section-label {
-            color: #8d62ff;
-            font-weight: 800;
-            text-transform: uppercase;
-
-            font-size: 12px;
-            letter-spacing: 3px;
-
-            margin-bottom: 15px;
-        }
-
-        .section-title {
-            max-width: 800px;
-
-            font-size: clamp(40px, 6vw, 75px);
-            line-height: .95;
-
-            letter-spacing: -4px;
-
-            margin-bottom: 60px;
-        }
-
-        /* =========================
-       CARDS
-    ========================== */
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .card {
-            min-height: 340px;
-
-            border: 1px solid rgba(255, 255, 255, .08);
-
-            border-radius: 24px;
-
+        .gradient {
             background:
-                linear-gradient(145deg,
-                    rgba(255, 255, 255, .055),
-                    rgba(255, 255, 255, .015));
+                linear-gradient(90deg,
+                    #ff54bd,
+                    #8a5cff,
+                    #38ddff,
+                    #ff54bd);
 
-            padding: 30px;
+            background-size: 250%;
 
-            position: relative;
-            overflow: hidden;
-
-            backdrop-filter: blur(10px);
-
-            transition:
-                border .3s ease,
-                box-shadow .3s ease;
-
-            transform-style: preserve-3d;
-        }
-
-        .card:hover {
-            border-color: rgba(255, 255, 255, .2);
-
-            box-shadow:
-                0 35px 80px rgba(0, 0, 0, .45);
-        }
-
-        .card-glow {
-            position: absolute;
-
-            width: 220px;
-            height: 220px;
-
-            border-radius: 50%;
-
-            background:
-                radial-gradient(circle,
-                    rgba(133, 70, 255, .25),
-                    transparent 70%);
-
-            top: -80px;
-            right: -80px;
-
-            transition: .5s;
-        }
-
-        .card:hover .card-glow {
-            transform: scale(1.7);
-        }
-
-        .icon {
-            width: 55px;
-            height: 55px;
-
-            display: grid;
-            place-items: center;
-
-            border-radius: 17px;
-
-            background: rgba(255, 255, 255, .07);
-
-            border: 1px solid rgba(255, 255, 255, .08);
-
-            font-size: 25px;
-
-            margin-bottom: 80px;
-
-            box-shadow:
-                inset 0 1px rgba(255, 255, 255, .1);
-        }
-
-        .card h3 {
-            font-size: 25px;
-
-            margin-bottom: 12px;
-
-            letter-spacing: -1px;
-
-            position: relative;
-        }
-
-        .card p {
-            color: #888;
-            line-height: 1.6;
-            font-size: 14px;
-
-            position: relative;
-        }
-
-        /* =========================
-       BIG TEXT
-    ========================== */
-
-        .marquee {
-            overflow: hidden;
-
-            border-top: 1px solid rgba(255, 255, 255, .07);
-            border-bottom: 1px solid rgba(255, 255, 255, .07);
-
-            padding: 35px 0;
-
-            transform: rotate(-2deg);
-
-            margin: 100px 0;
-        }
-
-        .marquee-inner {
-            display: flex;
-            width: max-content;
-
-            animation: marquee 18s linear infinite;
-        }
-
-        .marquee span {
-            font-size: 60px;
-            font-weight: 900;
-
-            white-space: nowrap;
-
-            padding-right: 60px;
+            background-clip: text;
+            -webkit-background-clip: text;
 
             color: transparent;
 
-            -webkit-text-stroke: 1px rgba(255, 255, 255, .25);
+            animation: gradientMove 4s linear infinite;
         }
 
-        .marquee strong {
-            color: white;
-            -webkit-text-stroke: 0;
-        }
-
-        @keyframes marquee {
+        @keyframes gradientMove {
             to {
-                transform: translateX(-50%);
+                background-position: 250%;
             }
         }
 
-        /* =========================
-       CTA
-    ========================== */
+        .subtitle {
+            color: #aaa;
 
-        .cta {
-            text-align: center;
+            font-size: 18px;
+            line-height: 1.6;
 
-            border-radius: 40px;
+            max-width: 620px;
 
-            border: 1px solid rgba(255, 255, 255, .1);
-
-            background:
-                radial-gradient(circle at top,
-                    rgba(98, 49, 255, .25),
-                    transparent 50%),
-                rgba(255, 255, 255, .03);
-
-            padding: 100px 30px;
-
-            position: relative;
-            overflow: hidden;
+            margin: 0 auto 35px;
         }
 
-        .cta h2 {
-            font-size: clamp(50px, 9vw, 110px);
-            line-height: .85;
+        .big-message {
+            font-size: clamp(22px, 4vw, 38px);
 
-            letter-spacing: -6px;
+            font-weight: 900;
 
             margin-bottom: 30px;
+
+            min-height: 50px;
         }
 
-        .cta p {
-            color: #888;
-            max-width: 550px;
+        .button {
+            border: 0;
 
-            margin: auto auto 35px;
+            padding: 16px 25px;
 
-            line-height: 1.6;
+            border-radius: 15px;
+
+            background:
+                linear-gradient(135deg,
+                    #7b2cff,
+                    #008cff);
+
+            color: white;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            font-size: 15px;
+
+            box-shadow:
+                0 15px 45px rgba(100, 50, 255, .4);
+
+            transition:
+                transform .2s ease,
+                box-shadow .2s ease;
         }
 
-        /* =========================
-       FOOTER
-    ========================== */
+        .button:hover {
+            transform:
+                translateY(-4px) scale(1.03);
 
-        footer {
-            max-width: 1200px;
-            margin: auto;
+            box-shadow:
+                0 25px 70px rgba(100, 50, 255, .6);
+        }
 
-            padding: 60px 24px;
+        .counter {
+            margin-top: 25px;
 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            font-size: 13px;
+
+            color: #777;
+        }
+
+        .emoji {
+            position: fixed;
+
+            font-size: 45px;
+
+            pointer-events: none;
+
+            animation: fly 2.5s linear forwards;
+
+            z-index: 10;
+        }
+
+        @keyframes fly {
+            0% {
+                opacity: 0;
+                transform:
+                    translateY(40px) rotate(0deg) scale(.5);
+            }
+
+            20% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0;
+
+                transform:
+                    translateY(-500px) rotate(720deg) scale(1.5);
+            }
+        }
+
+        .warning {
+            margin-top: 30px;
+
+            padding-top: 20px;
+
+            border-top: 1px solid rgba(255, 255, 255, .08);
 
             color: #666;
 
-            font-size: 13px;
+            font-size: 12px;
         }
 
-        /* =========================
-       REVEAL
-    ========================== */
+        .cursor {
+            position: fixed;
 
-        .reveal {
-            opacity: 0;
-            transform: translateY(50px);
+            width: 300px;
+            height: 300px;
 
-            transition:
-                opacity .8s ease,
-                transform .8s ease;
+            border-radius: 50%;
+
+            pointer-events: none;
+
+            background:
+                radial-gradient(circle,
+                    rgba(125, 60, 255, .18),
+                    transparent 70%);
+
+            transform: translate(-50%, -50%);
+
+            z-index: 1;
         }
 
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* =========================
-       MOBILE
-    ========================== */
-
-        @media (max-width: 850px) {
-
-            .nav-links {
-                display: none;
+        @media (max-width: 600px) {
+            .card {
+                padding: 35px 22px;
             }
 
             h1 {
-                letter-spacing: -5px;
+                letter-spacing: -3px;
             }
-
-            .cards {
-                grid-template-columns: 1fr;
-            }
-
-            .hero-object {
-                height: 220px;
-            }
-
-            .section-title {
-                letter-spacing: -2px;
-            }
-
-            footer {
-                flex-direction: column;
-                gap: 15px;
-            }
-
         }
     </style>
 </head>
-
 
 <body>
 
     <div class="background-grid"></div>
 
-    <div class="orb one"></div>
-    <div class="orb two"></div>
-    <div class="orb three"></div>
+    <div class="blob one"></div>
+    <div class="blob two"></div>
 
-    <canvas id="particles"></canvas>
+    <div class="cursor" id="cursor"></div>
 
-    <div class="cursor-glow" id="cursorGlow"></div>
+    <main class="card">
 
-
-    <!-- NAV -->
-
-    <nav>
-
-        <div class="logo">
-            <div class="logo-dot"></div>
-            NEXUS
+        <div class="status">
+            <div class="dot"></div>
+            IFRAME DETECTADO CON ÉXITO
         </div>
 
-        <div class="nav-links">
-            <a href="#about">About</a>
-            <a href="#features">Experience</a>
-            <a href="#contact">Contact</a>
+        <h1>
+            ESTÁS VIENDO
+            <br>
+            <span class="gradient">
+                UN IFRAME.
+            </span>
+        </h1>
+
+        <p class="subtitle">
+            Si puedes leer esto, felicidades:
+            acabas de incrustar exitosamente una página
+            dentro de otra página.
+            La ingeniería moderna ha alcanzado su punto máximo.
+        </p>
+
+        <div class="big-message" id="message">
+            🗿 Todo funciona sorprendentemente bien.
         </div>
 
-    </nav>
+        <button class="button" id="button">
+            NO PRESIONAR
+        </button>
 
+        <div class="counter">
+            Veces que ignoraste una advertencia:
+            <strong id="counter">0</strong>
+        </div>
 
-    <!-- HERO -->
-
-    <main class="hero">
-
-        <div class="hero-content">
-
-            <div class="badge">
-                <span></span>
-                THE FUTURE IS ALREADY HERE
-            </div>
-
-            <h1>
-                BEYOND
-                <br>
-                <span class="gradient-text">REALITY.</span>
-            </h1>
-
-            <p>
-                Exploramos la intersección entre diseño, tecnología
-                e imaginación para construir experiencias digitales
-                que parecen venir del futuro.
-            </p>
-
-            <div class="hero-actions">
-
-                <a href="#features" class="button primary">
-                    Explore the future →
-                </a>
-
-                <a href="#about" class="button secondary">
-                    Discover more
-                </a>
-
-            </div>
-
-
-            <div class="hero-object">
-
-                <div class="floating-card" id="floatingCard">
-
-                    <div class="floating-card-inner"></div>
-
-                    <div class="floating-title">
-                        ∞ NEXUS
-                    </div>
-
-                </div>
-
-            </div>
-
+        <div class="warning">
+            Este iframe contiene cantidades peligrosas de HTML.
+            Use bajo su propio riesgo.
         </div>
 
     </main>
 
-
-    <!-- ABOUT -->
-
-    <section id="about">
-
-        <div class="reveal">
-
-            <div class="section-label">
-                01 — The idea
-            </div>
-
-            <h2 class="section-title">
-                We don't predict
-                the future.
-                <span class="gradient-text">
-                    We build it.
-                </span>
-            </h2>
-
-        </div>
-
-    </section>
-
-
-    <!-- MARQUEE -->
-
-    <div class="marquee">
-
-        <div class="marquee-inner">
-
-            <span>
-                CREATE <strong>✦</strong>
-                EXPLORE <strong>✦</strong>
-                IMAGINE <strong>✦</strong>
-                INNOVATE <strong>✦</strong>
-            </span>
-
-            <span>
-                CREATE <strong>✦</strong>
-                EXPLORE <strong>✦</strong>
-                IMAGINE <strong>✦</strong>
-                INNOVATE <strong>✦</strong>
-            </span>
-
-        </div>
-
-    </div>
-
-
-    <!-- FEATURES -->
-
-    <section id="features">
-
-        <div class="reveal">
-
-            <div class="section-label">
-                02 — Experience
-            </div>
-
-            <h2 class="section-title">
-                Designed to feel
-                <span class="gradient-text">
-                    alive.
-                </span>
-            </h2>
-
-        </div>
-
-
-        <div class="cards">
-
-            <article class="card reveal tilt-card">
-
-                <div class="card-glow"></div>
-
-                <div class="icon">
-                    ◈
-                </div>
-
-                <h3>Spatial Design</h3>
-
-                <p>
-                    Interfaces construidas con profundidad, movimiento
-                    y composición para transformar una pantalla plana
-                    en una experiencia.
-                </p>
-
-            </article>
-
-
-            <article class="card reveal tilt-card">
-
-                <div class="card-glow"></div>
-
-                <div class="icon">
-                    ⚡
-                </div>
-
-                <h3>Motion First</h3>
-
-                <p>
-                    Animaciones sutiles reaccionan al usuario y hacen
-                    que cada interacción se sienta natural, rápida
-                    y deliberada.
-                </p>
-
-            </article>
-
-
-            <article class="card reveal tilt-card">
-
-                <div class="card-glow"></div>
-
-                <div class="icon">
-                    ✦
-                </div>
-
-                <h3>Next Generation</h3>
-
-                <p>
-                    Gradientes dinámicos, glassmorphism, partículas,
-                    iluminación interactiva y efectos tridimensionales
-                    trabajando juntos.
-                </p>
-
-            </article>
-
-        </div>
-
-    </section>
-
-
-    <!-- CTA -->
-
-    <section id="contact">
-
-        <div class="cta reveal">
-
-            <div class="section-label">
-                03 — Enter Nexus
-            </div>
-
-            <h2>
-                READY TO
-                <br>
-                <span class="gradient-text">
-                    GO BEYOND?
-                </span>
-            </h2>
-
-            <p>
-                No sabemos qué hay después de este botón.
-                Probablemente nada.
-                Pero se ve bastante mamalón.
-            </p>
-
-            <a href="#" class="button primary">
-                Enter the Nexus →
-            </a>
-
-        </div>
-
-    </section>
-
-
-    <footer>
-
-        <div>
-            NEXUS © 2026
-        </div>
-
-        <div>
-            Built with unnecessary amounts of CSS.
-        </div>
-
-    </footer>
-
-
     <script>
+        const messages = [
+            "🗿 Todo funciona sorprendentemente bien.",
+            "🚨 Te dije que no presionaras.",
+            "🤨 ¿Otra vez?",
+            "💀 Hermano ya déjalo.",
+            "🧑‍💻 QA acaba de abrir un ticket.",
+            "🔥 Producción está en llamas.",
+            "🤡 'En mi máquina sí funciona'.",
+            "📉 Lighthouse Score: no preguntes.",
+            "👀 Arc XP está observando.",
+            "🧠 Reiniciar producción debería arreglarlo.",
+            "⚠️ console.log('TODO BIEN');",
+            "🥲 El becario hizo deploy.",
+            "🚀 Deploy directo a main porque somos valientes.",
+            "💾 Backup: ninguno.",
+            "☕ El verdadero backend es café.",
+            "🫡 Gracias por probar el iframe."
+        ];
 
-        /* ==============================
-           CURSOR GLOW
-        ============================== */
+        const emojis = [
+            "💀",
+            "🔥",
+            "🗿",
+            "🤡",
+            "🚨",
+            "🚀",
+            "👀",
+            "🥲",
+            "⚡",
+            "💻"
+        ];
 
-        const cursorGlow = document.getElementById("cursorGlow");
+        let count = 0;
 
-        window.addEventListener("mousemove", (event) => {
+        const button =
+            document.getElementById("button");
 
-            cursorGlow.style.left = event.clientX + "px";
-            cursorGlow.style.top = event.clientY + "px";
+        const counter =
+            document.getElementById("counter");
+
+        const message =
+            document.getElementById("message");
+
+        const cursor =
+            document.getElementById("cursor");
+
+
+        button.addEventListener("click", () => {
+
+            count++;
+
+            counter.textContent = count;
+
+            message.textContent =
+                messages[count % messages.length];
+
+            createEmojiExplosion();
+
+            button.textContent =
+                count < 3
+                    ? "NO PRESIONAR"
+                    : count < 7
+                        ? "YA WEY"
+                        : count < 12
+                            ? "DETENTE"
+                            : "💀";
+
+            if (count === 10) {
+
+                document.title =
+                    "💀 Producción cayó";
+
+            }
 
         });
 
 
-        /* ==============================
-           SCROLL REVEAL
-        ============================== */
+        function createEmojiExplosion() {
 
-        const observer = new IntersectionObserver(
-            (entries) => {
+            for (let i = 0; i < 12; i++) {
 
-                entries.forEach((entry) => {
+                const emoji =
+                    document.createElement("div");
 
-                    if (entry.isIntersecting) {
+                emoji.className =
+                    "emoji";
 
-                        entry.target.classList.add("active");
+                emoji.textContent =
+                    emojis[
+                    Math.floor(
+                        Math.random() *
+                        emojis.length
+                    )
+                    ];
 
-                    }
+                emoji.style.left =
+                    Math.random() * 100 + "vw";
 
-                });
+                emoji.style.bottom =
+                    "-50px";
 
-            },
-            {
-                threshold: 0.15
-            }
-        );
+                emoji.style.animationDuration =
+                    1.5 + Math.random() * 2 + "s";
 
-
-        document
-            .querySelectorAll(".reveal")
-            .forEach((element) => {
-
-                observer.observe(element);
-
-            });
-
-
-        /* ==============================
-           CARD 3D TILT
-        ============================== */
-
-        document
-            .querySelectorAll(".tilt-card")
-            .forEach((card) => {
-
-                card.addEventListener("mousemove", (event) => {
-
-                    const rect = card.getBoundingClientRect();
-
-                    const x = event.clientX - rect.left;
-                    const y = event.clientY - rect.top;
-
-                    const centerX = rect.width / 2;
-                    const centerY = rect.height / 2;
-
-                    const rotateX =
-                        ((y - centerY) / centerY) * -7;
-
-                    const rotateY =
-                        ((x - centerX) / centerX) * 7;
-
-                    card.style.transform =
-                        `perspective(800px)
-             rotateX(${rotateX}deg)
-             rotateY(${rotateY}deg)
-             translateY(-8px)`;
-
-                });
-
-
-                card.addEventListener("mouseleave", () => {
-
-                    card.style.transform =
-                        "perspective(800px) rotateX(0) rotateY(0) translateY(0)";
-
-                });
-
-            });
-
-
-        /* ==============================
-           PARTICLES
-        ============================== */
-
-        const canvas =
-            document.getElementById("particles");
-
-        const ctx =
-            canvas.getContext("2d");
-
-
-        let particles = [];
-
-
-        function resizeCanvas() {
-
-            canvas.width =
-                window.innerWidth;
-
-            canvas.height =
-                window.innerHeight;
-
-        }
-
-
-        resizeCanvas();
-
-
-        window.addEventListener(
-            "resize",
-            resizeCanvas
-        );
-
-
-        class Particle {
-
-            constructor() {
-
-                this.reset();
-
-            }
-
-
-            reset() {
-
-                this.x =
-                    Math.random() * canvas.width;
-
-                this.y =
-                    Math.random() * canvas.height;
-
-                this.size =
-                    Math.random() * 1.5 + 0.3;
-
-                this.speedX =
-                    (Math.random() - 0.5) * 0.25;
-
-                this.speedY =
-                    (Math.random() - 0.5) * 0.25;
-
-                this.opacity =
-                    Math.random() * 0.5 + 0.15;
-
-            }
-
-
-            update() {
-
-                this.x += this.speedX;
-                this.y += this.speedY;
-
-
-                if (
-                    this.x < 0 ||
-                    this.x > canvas.width ||
-                    this.y < 0 ||
-                    this.y > canvas.height
-                ) {
-
-                    this.reset();
-
-                }
-
-            }
-
-
-            draw() {
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    this.x,
-                    this.y,
-                    this.size,
-                    0,
-                    Math.PI * 2
+                document.body.appendChild(
+                    emoji
                 );
 
-                ctx.fillStyle =
-                    `rgba(255,255,255,${this.opacity})`;
-
-                ctx.fill();
+                setTimeout(
+                    () => emoji.remove(),
+                    4000
+                );
 
             }
 
         }
-
-
-        for (let i = 0; i < 100; i++) {
-
-            particles.push(
-                new Particle()
-            );
-
-        }
-
-
-        function animateParticles() {
-
-            ctx.clearRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-
-
-            particles.forEach(
-                particle => {
-
-                    particle.update();
-                    particle.draw();
-
-                }
-            );
-
-
-            requestAnimationFrame(
-                animateParticles
-            );
-
-        }
-
-
-        animateParticles();
-
-
-        /* ==============================
-           HERO PARALLAX
-        ============================== */
-
-        const floatingCard =
-            document.getElementById("floatingCard");
 
 
         window.addEventListener(
             "mousemove",
-            (event) => {
+            event => {
 
-                const x =
-                    (event.clientX / window.innerWidth - 0.5) * 10;
+                cursor.style.left =
+                    event.clientX + "px";
 
-                const y =
-                    (event.clientY / window.innerHeight - 0.5) * -10;
-
-
-                floatingCard.style.transform =
-                    `
-          rotateX(${y}deg)
-          rotateY(${x}deg)
-          `;
+                cursor.style.top =
+                    event.clientY + "px";
 
             }
         );
 
+
+        /*
+          Si esta página está dentro de un iframe,
+          notificamos al parent.
+        */
+
+        if (window.self !== window.top) {
+
+            console.log(
+                "✅ Esta página está corriendo dentro de un iframe."
+            );
+
+            window.parent.postMessage(
+                {
+                    type: "IFRAME_AZTECA_READY",
+                    message: "El iframe está vivo 🗿"
+                },
+                "*"
+            );
+
+        } else {
+
+            console.log(
+                "ℹ️ Esta página fue abierta directamente."
+            );
+
+        }
     </script>
 
 </body>
